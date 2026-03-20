@@ -474,6 +474,17 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:30px 0}
 .fin-margem.med{background:var(--yellow-dim);color:var(--yellow)}
 .fin-margem.low{background:var(--red-dim);color:var(--red)}
 
+/* ── MÉTRICAS SECUNDÁRIAS ── */
+.met-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:20px}
+@media(max-width:600px){.met-cards{grid-template-columns:1fr 1fr}}
+@media(max-width:380px){.met-cards{grid-template-columns:1fr}}
+.met-card{background:var(--surface3);border:1px solid var(--border2);border-radius:var(--radius);padding:14px 16px}
+.met-card-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:6px}
+.met-card-value{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--text);line-height:1}
+.met-card-sub{font-size:11px;color:var(--text-muted);margin-top:5px}
+.met-card-bar{height:4px;background:var(--border2);border-radius:99px;margin-top:10px;overflow:hidden}
+.met-card-bar-fill{height:100%;border-radius:99px;transition:width .4s ease}
+
 /* ── MODAL DETALHES CAIXA ── */
 .modal-box.caixa-det-size{max-width:680px}
 .caixa-det-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap}
@@ -899,6 +910,24 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:30px 0}
             <div class="fin-card-value" id="finLucro">R$ 0,00</div>
             <div id="finMargemBadge"></div>
             <div id="finLucroComp" class="fin-comp"></div>
+          </div>
+        </div>
+
+        <div class="met-cards">
+          <div class="met-card">
+            <div class="met-card-label">🎫 Ticket médio</div>
+            <div class="met-card-value" id="metTicket">R$ 0,00</div>
+            <div class="met-card-sub" id="metTicketSub"></div>
+          </div>
+          <div class="met-card">
+            <div class="met-card-label">📊 Margem bruta</div>
+            <div class="met-card-value" id="metMargem">0%</div>
+            <div class="met-card-bar"><div class="met-card-bar-fill" id="metMargemBar" style="width:0%;background:var(--green)"></div></div>
+          </div>
+          <div class="met-card">
+            <div class="met-card-label">🔮 Projeção 30 dias</div>
+            <div class="met-card-value" id="metProjecao">R$ 0,00</div>
+            <div class="met-card-sub" id="metProjecaoSub"></div>
           </div>
         </div>
 
@@ -2435,6 +2464,26 @@ function renderDashboard(){
   renderComparativo('finReceitaComp',fat,fatAnt,lbl)
   renderComparativo('finCustoComp',custoTotal,custoAnt,lbl)
   renderComparativo('finLucroComp',lucro,lucroAnt,lbl)
+
+  // Métricas secundárias
+  const ticket=pv.length>0?fat/pv.length:0
+  document.getElementById('metTicket').textContent=brl(ticket)
+  document.getElementById('metTicketSub').textContent=pv.length>0?pv.length+' venda(s) no período':'Sem vendas no período'
+
+  const margemPct=fat>0?(lucro/fat*100):0
+  const margemBarCor=margemPct>=40?'var(--green)':margemPct>=20?'var(--yellow)':'var(--red)'
+  document.getElementById('metMargem').textContent=margemPct.toFixed(1)+'%'
+  document.getElementById('metMargem').style.color=margemBarCor
+  document.getElementById('metMargemBar').style.width=Math.min(margemPct,100)+'%'
+  document.getElementById('metMargemBar').style.background=margemBarCor
+
+  const diasComVenda=dias.length||1
+  const mediaDiaria=fat/diasComVenda
+  const projecao=Math.round(mediaDiaria*30)
+  document.getElementById('metProjecao').textContent=brl(projecao)
+  const tendencia=projecao>fat?'↑ acima do período atual':'↓ abaixo do período atual'
+  document.getElementById('metProjecaoSub').textContent=fat>0?'Baseado em '+diasComVenda+' dia(s) de venda':'Sem dados suficientes'
+
   // gráfico linha
   const porDia={}
   pv.forEach(v=>{const d=v.data||'?';porDia[d]=(porDia[d]||0)+(v.total||0)})
