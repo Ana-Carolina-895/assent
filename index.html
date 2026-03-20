@@ -46,19 +46,20 @@
   window._fbOnAuth = (cb) => onAuthStateChanged(auth, cb);
 
   // Timeout de segurança: se auth não responder em 12s, mostra tela de login
+  let _authResolved = false;
   const _authTimeout = setTimeout(() => {
+    if (_authResolved) return;
     const loading = document.getElementById('loginLoading');
     const screen = document.getElementById('loginScreen');
     if (loading && loading.style.display !== 'none') {
       loading.style.display = 'none';
       if (screen) screen.style.display = 'flex';
-      const msg = document.getElementById('loginMsg');
-      if (msg) { msg.className='login-msg error'; msg.textContent='Conexão lenta. Tente logar normalmente.'; }
     }
   }, 12000);
 
   // Dispara o init do app quando auth estiver pronto
   window._fbOnAuth(async (user) => {
+    _authResolved = true;
     clearTimeout(_authTimeout);
     if (user) {
       try {
