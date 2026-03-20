@@ -2450,7 +2450,11 @@ function renderDashboard(){
   renderComparativo('finReceitaComp',fat,fatAnt,lbl)
   renderComparativo('finCustoComp',custoTotal,custoAnt,lbl)
   renderComparativo('finLucroComp',lucro,lucroAnt,lbl)
-  // Métricas secundárias
+  // gráfico linha
+  const porDia={}
+  pv.forEach(v=>{const d=v.data||'?';porDia[d]=(porDia[d]||0)+(v.total||0)})
+  const dias=Object.keys(porDia).sort()
+  // Métricas secundárias (dias já declarado acima)
   const ticket=pv.length>0?fat/pv.length:0
   document.getElementById('metTicket').textContent=brl(ticket)
   document.getElementById('metTicketSub').textContent=pv.length>0?pv.length+' venda(s) no período':'Sem vendas no período'
@@ -2461,14 +2465,9 @@ function renderDashboard(){
   document.getElementById('metMargemBar').style.width=Math.min(margemPct,100)+'%'
   document.getElementById('metMargemBar').style.background=margemBarCor
   const diasComVenda=dias.length||1
-  const mediaDiaria=fat/diasComVenda
-  const projecao=Math.round(mediaDiaria*30)
+  const projecao=Math.round((fat/diasComVenda)*30)
   document.getElementById('metProjecao').textContent=brl(projecao)
   document.getElementById('metProjecaoSub').textContent=fat>0?'Baseado em '+diasComVenda+' dia(s) de venda':'Sem dados suficientes'
-  // gráfico linha
-  const porDia={}
-  pv.forEach(v=>{const d=v.data||'?';porDia[d]=(porDia[d]||0)+(v.total||0)})
-  const dias=Object.keys(porDia).sort()
   if(_chartFat){_chartFat.destroy();_chartFat=null}
   const ctxFat=document.getElementById('chartFaturamento').getContext('2d')
   if(dias.length){
