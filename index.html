@@ -45,22 +45,8 @@
   window._fbSetDoc = (path, id, data, merge) => setDoc(doc(db, path, id), data, merge ? {merge:true} : {});
   window._fbOnAuth = (cb) => onAuthStateChanged(auth, cb);
 
-  // Timeout de segurança: se auth não responder em 12s, mostra tela de login
-  let _authResolved = false;
-  const _authTimeout = setTimeout(() => {
-    if (_authResolved) return;
-    const loading = document.getElementById('loginLoading');
-    const screen = document.getElementById('loginScreen');
-    if (loading && loading.style.display !== 'none') {
-      loading.style.display = 'none';
-      if (screen) screen.style.display = 'flex';
-    }
-  }, 12000);
-
   // Dispara o init do app quando auth estiver pronto
   window._fbOnAuth(async (user) => {
-    _authResolved = true;
-    clearTimeout(_authTimeout);
     if (user) {
       try {
         console.log('✅ UID:', user.uid, '| Email:', user.email);
@@ -666,9 +652,9 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:30px 0}
   .chart-row{grid-template-columns:1fr!important}
   .rank-grid{grid-template-columns:1fr!important}
   .grid-stats{grid-template-columns:1fr 1fr!important}
+  .dash-filter-bar{gap:5px;flex-wrap:wrap}
   .dash-vendas-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
   .dash-vendas-scroll table{min-width:380px;font-size:12px}
-  .dash-filter-bar{gap:5px;flex-wrap:wrap}
   .filter-btn{padding:5px 9px;font-size:12px}
   .modal-overlay{align-items:flex-end!important;padding:0}
   .modal-box{max-width:100%!important;width:100%!important;max-height:92vh;overflow-y:auto;border-radius:16px 16px 0 0!important;margin:0;box-shadow:0 -8px 40px rgba(0,0,0,.4)}
@@ -682,10 +668,9 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:30px 0}
   .edit-add-row{grid-template-columns:1fr 1fr!important}
 }
 @media(max-width:400px){
-  .grid-stats{grid-template-columns:1fr 1fr!important}
+  .grid-stats{grid-template-columns:1fr!important}
   .fin-cards{grid-template-columns:1fr!important}
   .content{padding:10px}
-  .stat-card{padding:14px}
 }
 
 @media print{body{background:#fff!important;color:#000!important;overflow:auto!important;height:auto!important}.app,.sidebar,.topbar,.nav,.toast-container,.modal-overlay{display:none!important}@page{margin:20mm}}
@@ -2465,26 +2450,21 @@ function renderDashboard(){
   renderComparativo('finReceitaComp',fat,fatAnt,lbl)
   renderComparativo('finCustoComp',custoTotal,custoAnt,lbl)
   renderComparativo('finLucroComp',lucro,lucroAnt,lbl)
-
   // Métricas secundárias
   const ticket=pv.length>0?fat/pv.length:0
   document.getElementById('metTicket').textContent=brl(ticket)
   document.getElementById('metTicketSub').textContent=pv.length>0?pv.length+' venda(s) no período':'Sem vendas no período'
-
   const margemPct=fat>0?(lucro/fat*100):0
   const margemBarCor=margemPct>=40?'var(--green)':margemPct>=20?'var(--yellow)':'var(--red)'
   document.getElementById('metMargem').textContent=margemPct.toFixed(1)+'%'
   document.getElementById('metMargem').style.color=margemBarCor
   document.getElementById('metMargemBar').style.width=Math.min(margemPct,100)+'%'
   document.getElementById('metMargemBar').style.background=margemBarCor
-
   const diasComVenda=dias.length||1
   const mediaDiaria=fat/diasComVenda
   const projecao=Math.round(mediaDiaria*30)
   document.getElementById('metProjecao').textContent=brl(projecao)
-  const tendencia=projecao>fat?'↑ acima do período atual':'↓ abaixo do período atual'
   document.getElementById('metProjecaoSub').textContent=fat>0?'Baseado em '+diasComVenda+' dia(s) de venda':'Sem dados suficientes'
-
   // gráfico linha
   const porDia={}
   pv.forEach(v=>{const d=v.data||'?';porDia[d]=(porDia[d]||0)+(v.total||0)})
@@ -6260,9 +6240,6 @@ function loginComEmail(){
   const senha=document.getElementById('loginSenha').value
   const msg=document.getElementById('loginMsg')
   if(!email||!senha){msg.className='login-msg error';msg.textContent='Preencha e-mail e senha.';return}
-  if(typeof window._fbSignInEmail !== 'function'){
-    msg.className='login-msg error';msg.textContent='Sistema ainda carregando. Aguarde e tente novamente.';return
-  }
   msg.className='login-msg';msg.textContent='Entrando…'
   window._fbSignInEmail(email,senha).catch(e=>{
     msg.className='login-msg error'
@@ -6270,8 +6247,6 @@ function loginComEmail(){
       msg.textContent='E-mail ou senha incorretos.'
     else if(e.code==='auth/too-many-requests')
       msg.textContent='Muitas tentativas. Aguarde alguns minutos.'
-    else if(e.code==='auth/network-request-failed')
-      msg.textContent='Sem conexão. Verifique sua internet e tente novamente.'
     else
       msg.textContent='Erro: '+e.message
   })
