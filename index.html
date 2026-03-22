@@ -1065,6 +1065,49 @@ thead th{color:var(--text-dim)!important;font-weight:700}
 }
 @keyframes spin{to{transform:rotate(360deg)}}
 
+
+/* ══ AGENDA ══ */
+.ag-resumo{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px}
+.ag-res-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;text-align:center}
+.ag-res-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--text-dim);margin-bottom:8px}
+.ag-res-val{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:600}
+.ag-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.ag-view-btn{background:var(--surface2);border:1px solid var(--border2);color:var(--text-dim);padding:6px 16px;border-radius:99px;cursor:pointer;font-family:'Sora',sans-serif;font-size:12px;font-weight:500;transition:all .15s}
+.ag-view-btn.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.ag-grupo{margin-bottom:20px}
+.ag-grupo-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--text-muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.ag-grupo-label.ag-hoje-lbl{color:var(--accent)}
+.ag-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;display:flex;align-items:flex-start;gap:12px;margin-bottom:8px;cursor:default;transition:border-color .15s,transform .1s}
+.ag-card:hover{border-color:var(--border2);transform:translateY(-1px)}
+.ag-card-concluido{opacity:.45}
+.ag-card-left{display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-width:108px;flex-shrink:0}
+.ag-tipo-badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;white-space:nowrap}
+.ag-hora{font-size:11px;color:var(--text-muted);font-family:'JetBrains Mono',monospace}
+.ag-card-body{flex:1;min-width:0}
+.ag-card-titulo{font-size:14px;font-weight:600;margin-bottom:5px;line-height:1.3}
+.ag-card-concluido .ag-card-titulo{text-decoration:line-through;color:var(--text-muted)}
+.ag-card-meta{display:flex;flex-wrap:wrap;gap:8px}
+.ag-card-meta span{font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:3px}
+.ag-obs{font-style:italic;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ag-card-actions{display:flex;flex-direction:column;gap:3px;flex-shrink:0}
+/* Calendário */
+.ag-cal-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px}
+.ag-cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.ag-cal-titulo{font-size:16px;font-weight:700;font-family:'Cormorant Garamond',serif;letter-spacing:.04em}
+.ag-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.ag-cal-header{text-align:center;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);padding:6px 2px;margin-bottom:2px}
+.ag-cal-cell{background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:7px;min-height:76px;cursor:pointer;transition:border-color .15s,background .15s;display:flex;flex-direction:column;gap:2px;overflow:hidden}
+.ag-cal-cell:hover{border-color:var(--accent);background:var(--accent-dim)}
+.ag-cal-hoje{border-color:var(--accent)!important;background:var(--accent-dim)!important}
+.ag-cal-empty{background:transparent!important;border-color:transparent!important;cursor:default;pointer-events:none}
+.ag-cal-num{font-size:12px;font-weight:600;color:var(--text-dim);font-family:'JetBrains Mono',monospace;margin-bottom:2px}
+.ag-cal-hoje .ag-cal-num{color:var(--accent);font-weight:700}
+.ag-cal-ev{font-size:10px;padding:2px 5px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.5;font-weight:500}
+.ag-cal-ev-done{opacity:.35;text-decoration:line-through}
+.ag-cal-mais{font-size:10px;color:var(--text-muted);padding:1px 4px;font-style:italic}
+/* Tipos */
+.ag-tipo-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.ag-tipo-row:last-child{border-bottom:none}
 </style>
 </head>
 <body>
@@ -1465,35 +1508,37 @@ thead th{color:var(--text-dim)!important;font-weight:700}
 
       <!-- ══ AGENDA ══ -->
       <div id="agenda" class="page">
-        <!-- Resumo -->
+
+        <!-- Resumo cards -->
         <div class="ag-resumo">
-          <div class="ag-res-card">
-            <div class="ag-res-label">Hoje</div>
+          <div class="ag-res-card" style="border-top:2px solid var(--accent)">
+            <div class="ag-res-label">📅 Hoje</div>
             <div class="ag-res-val" id="agResHoje" style="color:var(--accent)">0</div>
           </div>
-          <div class="ag-res-card">
-            <div class="ag-res-label">Esta semana</div>
+          <div class="ag-res-card" style="border-top:2px solid var(--yellow)">
+            <div class="ag-res-label">📆 Esta semana</div>
             <div class="ag-res-val" id="agResSemana" style="color:var(--yellow)">0</div>
           </div>
-          <div class="ag-res-card">
-            <div class="ag-res-label">Pendentes</div>
+          <div class="ag-res-card" style="border-top:2px solid var(--red)">
+            <div class="ag-res-label">⏰ Pendentes</div>
             <div class="ag-res-val" id="agResPendentes" style="color:var(--red)">0</div>
           </div>
         </div>
 
         <!-- Toolbar -->
         <div class="ag-toolbar">
-          <div style="display:flex;gap:6px;flex-wrap:wrap" id="agendaFiltros">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap" id="agendaFiltros">
             <span class="dash-filter-label">Exibir:</span>
             <button class="filter-btn active" onclick="setAgendaFiltro('proximos',this)">Próximos</button>
             <button class="filter-btn" onclick="setAgendaFiltro('hoje',this)">Hoje</button>
             <button class="filter-btn" onclick="setAgendaFiltro('semana',this)">Esta semana</button>
             <button class="filter-btn" onclick="setAgendaFiltro('todos',this)">Todos</button>
           </div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-            <button class="ag-view-btn active" onclick="setAgendaView('lista',this)">☰ Lista</button>
-            <button class="ag-view-btn" onclick="setAgendaView('calendario',this)">📅 Calendário</button>
-            <button class="btn btn-ghost btn-sm" onclick="openModalTiposAgenda()" style="font-size:12px">⚙️ Tipos</button>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <button class="ag-view-btn active" onclick="setAgendaView('lista',this)" id="agBtnLista">☰ Lista</button>
+            <button class="ag-view-btn" onclick="setAgendaView('calendario',this)" id="agBtnCal">📅 Calendário</button>
+            <div style="width:1px;height:20px;background:var(--border2)"></div>
+            <button class="btn btn-ghost btn-sm" onclick="openModalTiposAgenda()" style="font-size:12px;gap:4px">⚙️ Tipos</button>
             <button class="btn btn-primary btn-sm" onclick="openModalNovoEvento()" style="font-size:12px">＋ Novo evento</button>
           </div>
         </div>
@@ -1502,13 +1547,22 @@ thead th{color:var(--text-dim)!important;font-weight:700}
         <div id="agendaListaBody"></div>
 
         <!-- Calendário -->
-        <div id="agendaCalWrap" style="display:none">
+        <div id="agendaCalWrap" class="ag-cal-wrap" style="display:none">
           <div class="ag-cal-nav">
-            <button class="btn btn-ghost btn-sm" onclick="agCalNav(-1)">◀ Anterior</button>
+            <button class="btn btn-ghost btn-sm" onclick="agCalNav(-1)">◀</button>
             <span class="ag-cal-titulo" id="agCalTitulo"></span>
-            <button class="btn btn-ghost btn-sm" onclick="agCalNav(1)">Próximo ▶</button>
+            <button class="btn btn-ghost btn-sm" onclick="agCalNav(1)">▶</button>
           </div>
-          <div id="agendaCalBody"></div>
+          <div class="ag-cal-grid" id="agendaCalHeaders">
+            <div class="ag-cal-header">Dom</div>
+            <div class="ag-cal-header">Seg</div>
+            <div class="ag-cal-header">Ter</div>
+            <div class="ag-cal-header">Qua</div>
+            <div class="ag-cal-header">Qui</div>
+            <div class="ag-cal-header">Sex</div>
+            <div class="ag-cal-header">Sáb</div>
+          </div>
+          <div class="ag-cal-grid" id="agendaCalBody" style="margin-top:4px"></div>
         </div>
       </div>
 
@@ -6078,9 +6132,14 @@ const VERSAO_ATUAL='4.6'
 const GITHUB_REPO='michaeldsc10/assent'
 const GITHUB_PAGES_URL='https://michaeldsc10.github.io/assent/'
 
+function openModal(id){
+  const el=document.getElementById(id);if(el)el.classList.add('open')
+}
+window.openModal=openModal
 function closeModal(id){
   const el=document.getElementById(id);if(el)el.classList.remove('open')
 }
+window.closeModal=closeModal
 
 async function verificarAtualizacao(){
   const ov=document.getElementById('modalUpdate')
@@ -6726,7 +6785,7 @@ function renderListaAgenda(){
   eventos.forEach(e=>{if(!grupos[e.data])grupos[e.data]=[];grupos[e.data].push(e)})
   el.innerHTML=Object.entries(grupos).sort((a,b)=>a[0]>b[0]?1:-1).map(([data,evs])=>{
     const isHoje=data===hj
-    return'<div class="ag-grupo"><div class="ag-grupo-label'+(isHoje?' ag-hoje':'')+'">'+(isHoje?'Hoje — ':'')+fmtData(data)+'</div>'+evs.map(e=>_renderEventoCard(e)).join('')+'</div>'
+    return'<div class="ag-grupo"><div class="ag-grupo-label'+(isHoje?' ag-hoje-lbl':'')+'">'+(isHoje?'Hoje — ':'')+fmtData(data)+'</div>'+evs.map(e=>_renderEventoCard(e)).join('')+'</div>'
   }).join('')
 }
 
@@ -6765,7 +6824,7 @@ function renderCalendarioAgenda(){
   const tit=document.getElementById('agCalTitulo');if(tit)tit.textContent=nomeMes+' '+ano
   const mesStr=String(ano)+'-'+String(mes+1).padStart(2,'0')
   const evMes=agenda.filter(e=>e.data&&e.data.startsWith(mesStr))
-  let html='<div class="ag-cal-grid">'+nomes.map(n=>'<div class="ag-cal-header">'+n+'</div>').join('')
+  let html=''
   for(let i=0;i<primeiroDia;i++)html+='<div class="ag-cal-cell ag-cal-empty"></div>'
   for(let d=1;d<=diasNoMes;d++){
     const ds=String(ano)+'-'+String(mes+1).padStart(2,'0')+'-'+String(d).padStart(2,'0')
@@ -6774,10 +6833,9 @@ function renderCalendarioAgenda(){
     html+='<div class="ag-cal-cell'+(isHoje?' ag-cal-hoje':'')+'" onclick="openModalNovoEvento(\'' + ds + '\')">' +
       '<span class="ag-cal-num">'+d+'</span>'+
       evDia.slice(0,3).map(e=>{const t=_agendaTipoPorId(e.tipo);return'<div class="ag-cal-ev'+(e.concluido?' ag-cal-ev-done':'')+'" style="background:'+t.cor+'33;color:'+t.cor+'" title="'+escHtml(e.titulo)+'">'+t.icone+' '+escHtml(e.titulo.length>12?e.titulo.slice(0,12)+'…':e.titulo)+'</div>'}).join('')+
-      (evDia.length>3?'<div class="ag-cal-mais">+'+( evDia.length-3)+' mais</div>':'')+
+      (evDia.length>3?'<div class="ag-cal-mais">+'+(evDia.length-3)+' mais</div>':'')+
     '</div>'
   }
-  html+='</div>'
   el.innerHTML=html
 }
 
@@ -6888,6 +6946,18 @@ function toggleEventoConcluido(id){
 }
 
 function openModalTiposAgenda(){renderTiposAgenda();openModal('modalAgendaTipos')}
+window.openModalNovoEvento=openModalNovoEvento
+window.openModalEditarEvento=openModalEditarEvento
+window.openModalTiposAgenda=openModalTiposAgenda
+window.salvarEvento=salvarEvento
+window.excluirEvento=excluirEvento
+window.toggleEventoConcluido=toggleEventoConcluido
+window.setAgendaView=setAgendaView
+window.setAgendaFiltro=setAgendaFiltro
+window.agCalNav=agCalNav
+window.renderTiposAgenda=renderTiposAgenda
+window.salvarTipoAgenda=salvarTipoAgenda
+window.excluirTipoAgenda=excluirTipoAgenda
 
 function renderTiposAgenda(){
   const el=document.getElementById('agTiposLista');if(!el)return
