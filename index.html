@@ -84,8 +84,8 @@
 <style>
 /* ═══ TEMAS ═══ */
 :root{
-  --bg:#050504;--surface:#0a0907;--surface2:#0f0d0a;--surface3:#141210;
-  --border:#1f1a12;--border2:#2a2218;
+  --bg:#020201;--surface:#111008;--surface2:#181510;--surface3:#1f1c14;
+  --border:#2a2418;--border2:#332e1e;
   --accent:#C9A84C;--accent-dim:rgba(201,168,76,.12);
   --green:#4ade80;--green-dim:rgba(74,222,128,.12);
   --yellow:#fbbf24;--yellow-dim:rgba(251,191,36,.12);
@@ -97,8 +97,8 @@
   --radius:10px;--radius-lg:14px;
 }
 html[data-theme="light"]{
-  --bg:#F5F2EC;--surface:#FFFEF9;--surface2:#F7F4ED;--surface3:#EEEADE;
-  --border:#DDD8C8;--border2:#CEC9B8;
+  --bg:#E8E3D8;--surface:#FDFAF3;--surface2:#F5F1E6;--surface3:#EDE8DA;
+  --border:#D5CEB8;--border2:#C8C0A5;
   --accent:#9A7B2A;--accent-dim:rgba(154,123,42,.10);
   --green:#16a34a;--green-dim:rgba(22,163,74,.10);
   --yellow:#b45309;--yellow-dim:rgba(180,83,9,.10);
@@ -681,13 +681,13 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:30px 0}
 
 /* Sombra dourada nos cards de stat */
 .stat-card{
-  box-shadow:0 2px 12px rgba(0,0,0,.45),0 1px 0 rgba(201,168,76,.04) inset;
+  box-shadow:0 4px 20px rgba(0,0,0,.7),0 1px 0 rgba(201,168,76,.05) inset;
   transition:transform .22s cubic-bezier(.4,0,.2,1),box-shadow .22s cubic-bezier(.4,0,.2,1),border-color .22s;
 }
 .stat-card:hover{
   transform:translateY(-3px);
-  box-shadow:0 8px 32px rgba(0,0,0,.55),0 0 0 1px rgba(201,168,76,.18),0 1px 0 rgba(201,168,76,.06) inset;
-  border-color:rgba(201,168,76,.2);
+  box-shadow:0 10px 40px rgba(0,0,0,.75),0 0 0 1px rgba(201,168,76,.2),0 1px 0 rgba(201,168,76,.06) inset;
+  border-color:rgba(201,168,76,.22);
 }
 
 /* Linha de topo dourada nos stat-cards com brilho */
@@ -706,17 +706,17 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:30px 0}
 /* Profundidade nos painéis / chart / rank */
 .chart-panel,.rank-panel,.dash-panel,.form-section,.table-wrapper,
 .config-section,.fin-card,.rel-sum-card,.met-card{
-  box-shadow:0 2px 14px rgba(0,0,0,.4),0 1px 0 rgba(255,255,255,.02) inset;
+  box-shadow:0 4px 24px rgba(0,0,0,.65),0 1px 0 rgba(255,255,255,.02) inset;
   transition:box-shadow .22s,border-color .22s,transform .22s;
 }
 .chart-panel:hover,.rank-panel:hover,.dash-panel:hover{
-  box-shadow:0 6px 28px rgba(0,0,0,.55),0 0 0 1px rgba(201,168,76,.1);
-  border-color:rgba(201,168,76,.12);
+  box-shadow:0 8px 36px rgba(0,0,0,.75),0 0 0 1px rgba(201,168,76,.12);
+  border-color:rgba(201,168,76,.14);
 }
 .fin-card:hover{
   transform:translateY(-2px);
-  box-shadow:0 6px 24px rgba(0,0,0,.5),0 0 0 1px rgba(201,168,76,.15);
-  border-color:rgba(201,168,76,.18);
+  box-shadow:0 8px 32px rgba(0,0,0,.7),0 0 0 1px rgba(201,168,76,.18);
+  border-color:rgba(201,168,76,.2);
 }
 
 /* Botão primário — press + shimmer */
