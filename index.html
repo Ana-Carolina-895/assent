@@ -2595,8 +2595,28 @@ function save(){
   lsSet('clientes',clientes);lsSet('produtos',produtos);lsSet('vendas',vendas)
   lsSet('entradas',entradas);lsSet('caixas',caixas);lsSet('servicos',servicos)
   lsSet('despesas',despesas);lsSet('fornecedores',fornecedores);lsSet('vendedores',vendedores)
+  _syncFirestore()
   renderDashboard();renderClientes();renderProdutos();renderServicos();renderVendas()
   renderEntradas();renderCaixa();renderDespesas();renderFornecedores();renderVendedores();renderFiado();atualizarResumo();populateSelects()
+}
+
+// ══ SYNC FIRESTORE ══
+// Salva todos os dados no Firestore sob o UID do usuário logado.
+// Executado de forma assíncrona (sem bloquear a UI).
+function _syncFirestore(){
+  if(!window._fbUsuarioAtual)return
+  const uid=window._fbUsuarioAtual.uid
+  const saleIdCnt=parseInt(localStorage.getItem('saleIdCnt')||'0')
+  // Remove logo do sync (pode ser base64 grande; ultrapassa o limite de 1MB do Firestore)
+  const cfgSemLogo={...config,logo:config.logo?'__has_logo__':''}
+  const payload={
+    clientes,produtos,vendas,entradas,caixas,
+    servicos,despesas,fornecedores,vendedores,
+    config:cfgSemLogo,saleIdCnt,
+    updatedAt:new Date().toISOString()
+  }
+  window._fbSetDoc('dados',uid,payload,false)
+    .catch(e=>console.warn('⚠️ Firestore sync error:',e.message))
 }
 function saveConfig(){
   config.empresaNome=document.getElementById('cfgEmpresaNome').value.trim()
@@ -2605,6 +2625,7 @@ function saveConfig(){
   config.estoqueMin=parseInt2(document.getElementById('cfgEstoqueMin').value,3,0)
   config.githubRepo=undefined // campo removido — repo fixo internamente
   lsSet('config',config)
+  _syncFirestore()
   applyConfig()
   renderStockAlert()
   renderProdutos()
@@ -6668,9 +6689,44 @@ function _mostrarErroLicenca(user, mensagem){
   document.getElementById('loginBloqueadoMsg').textContent=msg
 }
 
-function _iniciarApp(){
+async function _iniciarApp(){
   document.getElementById('loginLoading').style.display='none'
   document.getElementById('loginScreen').style.display='none'
+
+  // ── Carrega dados do Firestore (banco online) ──
+  if(window._fbUsuarioAtual){
+    try{
+      const uid=window._fbUsuarioAtual.uid
+      const snap=await window._fbGetDoc('dados',uid)
+      if(snap.exists()){
+        const d=snap.data()
+        // Usa dados do Firestore; localStorage é só fallback local
+        clientes=d.clientes||[]
+        produtos=d.produtos||[]
+        vendas=d.vendas||[]
+        entradas=d.entradas||[]
+        caixas=d.caixas||[]
+        servicos=d.servicos||[]
+        despesas=d.despesas||[]
+        fornecedores=d.fornecedores||[]
+        vendedores=d.vendedores||[]
+        if(d.config){
+          // Restaura logo do localStorage (não é salvo no Firestore por limite de tamanho)
+          const logoLocal=lsGetObj('config',{}).logo||''
+          config={...d.config,logo:d.config.logo==='__has_logo__'?logoLocal:d.config.logo||''}
+        }
+        if(d.saleIdCnt)localStorage.setItem('saleIdCnt',String(d.saleIdCnt))
+        console.log('\u2705 Dados carregados do Firestore')
+      } else {
+        // Primeira vez: dados vêm do localStorage (migração automática)
+        console.log('\u2139\ufe0f Sem dados no Firestore — usando localStorage como base')
+        _syncFirestore() // sobe dados locais para o Firestore imediatamente
+      }
+    }catch(e){
+      console.warn('\u26a0\ufe0f Falha ao carregar do Firestore, usando localStorage:',e.message)
+    }
+  }
+
   document.getElementById('tabWarning').style.display=''
   document.querySelector('.app').style.display='flex'
   render()
