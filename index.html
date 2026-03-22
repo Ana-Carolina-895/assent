@@ -6912,9 +6912,14 @@ function openModalEditarEvento(id){
 function salvarEvento(){
   const titulo=document.getElementById('agEvTitulo').value.trim()
   const data=document.getElementById('agEvData').value
-  if(!titulo){setFieldError('fg-agEvTitulo',true);return}
-  if(!data){setFieldError('fg-agEvData',true);return}
-  setFieldError('fg-agEvTitulo',false);setFieldError('fg-agEvData',false)
+  const fgTitulo=document.getElementById('fg-agEvTitulo')
+  const fgData=document.getElementById('fg-agEvData')
+  if(fgTitulo)fgTitulo.classList.toggle('error',!titulo)
+  if(!titulo)return
+  if(fgData)fgData.classList.toggle('error',!data)
+  if(!data)return
+  if(fgTitulo)fgTitulo.classList.remove('error')
+  if(fgData)fgData.classList.remove('error')
   const ev={
     id:_eventoEditIdx!==null?agenda[_eventoEditIdx].id:('ev'+Date.now()),
     titulo,tipo:document.getElementById('agEvTipo').value,data,
