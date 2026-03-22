@@ -6747,9 +6747,9 @@ function _renderEventoCard(e){
       '</div>'+
     '</div>'+
     '<div class="ag-card-actions">'+
-      '<button class="btn btn-ghost btn-sm" onclick="toggleEventoConcluido(''+e.id+'')" title="'+(e.concluido?'Reabrir':'Concluir')+'">'+(e.concluido?'↩️':'✅')+'</button>'+
-      '<button class="btn btn-ghost btn-sm" onclick="openModalEditarEvento(''+e.id+'')" title="Editar">✏️</button>'+
-      '<button class="btn btn-ghost btn-sm" onclick="excluirEvento(''+e.id+'')" title="Excluir">🗑️</button>'+
+      '<button class="btn btn-ghost btn-sm" onclick="toggleEventoConcluido(\'' + e.id + '\')" title="'+(e.concluido?'Reabrir':'Concluir')+'">'+(e.concluido?'↩️':'✅')+'</button>'+
+      '<button class="btn btn-ghost btn-sm" onclick="openModalEditarEvento(\'' + e.id + '\')" title="Editar">✏️</button>'+
+      '<button class="btn btn-ghost btn-sm" onclick="excluirEvento(\'' + e.id + '\')" title="Excluir">🗑️</button>'+
     '</div>'+
   '</div>'
 }
@@ -6771,7 +6771,7 @@ function renderCalendarioAgenda(){
     const ds=String(ano)+'-'+String(mes+1).padStart(2,'0')+'-'+String(d).padStart(2,'0')
     const evDia=evMes.filter(e=>e.data===ds)
     const isHoje=ds===hj
-    html+='<div class="ag-cal-cell'+(isHoje?' ag-cal-hoje':'')+'" onclick="openModalNovoEvento(''+ds+'')">'+
+    html+='<div class="ag-cal-cell'+(isHoje?' ag-cal-hoje':'')+'" onclick="openModalNovoEvento(\'' + ds + '\')">' +
       '<span class="ag-cal-num">'+d+'</span>'+
       evDia.slice(0,3).map(e=>{const t=_agendaTipoPorId(e.tipo);return'<div class="ag-cal-ev'+(e.concluido?' ag-cal-ev-done':'')+'" style="background:'+t.cor+'33;color:'+t.cor+'" title="'+escHtml(e.titulo)+'">'+t.icone+' '+escHtml(e.titulo.length>12?e.titulo.slice(0,12)+'…':e.titulo)+'</div>'}).join('')+
       (evDia.length>3?'<div class="ag-cal-mais">+'+( evDia.length-3)+' mais</div>':'')+
@@ -6896,7 +6896,7 @@ function renderTiposAgenda(){
   el.innerHTML=tipos.map(t=>'<div class="ag-tipo-row">'+
     '<span style="font-size:18px">'+t.icone+'</span>'+
     '<span class="badge" style="background:'+t.cor+'22;color:'+t.cor+';border:1px solid '+t.cor+'44;flex:1">'+escHtml(t.nome)+'</span>'+
-    '<button class="btn btn-ghost btn-sm" onclick="excluirTipoAgenda(''+t.id+'')">🗑️</button>'+
+    '<button class="btn btn-ghost btn-sm" onclick="excluirTipoAgenda(\'' + t.id + '\')" >🗑️</button>'+
   '</div>').join('')
 }
 
