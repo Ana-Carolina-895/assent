@@ -6414,6 +6414,7 @@ function _processarBackupJson(texto){
       lsSet('entradas',entradas);lsSet('caixas',caixas);lsSet('servicos',servicos)
       lsSet('despesas',despesas);lsSet('fornecedores',fornecedores);lsSet('vendedores',vendedores)
       lsSet('config',config)
+      _syncFirestore() // ← sobe o backup restaurado para o Firestore
       toast('✅ Backup restaurado com sucesso!');render()
     },'Restaurar backup','Restaurar','btn-warning')
   }catch(e){toast('Arquivo inválido ou corrompido.','error')}
