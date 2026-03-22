@@ -1167,6 +1167,7 @@ thead th{color:var(--text-dim)!important;font-weight:700}
       <!-- ANÁLISE -->
       <div class="nav-label">Análise</div>
       <button class="nav-btn"        data-tip="Relatórios"   onclick="showPage('relatorios',this)"><span class="icon">📋</span><span class="label">Relatórios</span></button>
+      <button class="nav-btn"        data-tip="Agenda"       onclick="showPage('agenda',this)"><span class="icon">📅</span><span class="label">Agenda</span></button>
       <div class="nav-divider"></div>
       <!-- SISTEMA -->
       <div class="nav-label">Sistema</div>
@@ -1181,9 +1182,6 @@ thead th{color:var(--text-dim)!important;font-weight:700}
     <div class="sidebar-footer">
       <div class="sidebar-footer-inner">
         <div style="display:flex;gap:6px;margin-bottom:10px">
-          <button class="btn btn-ghost btn-sm" style="flex:1;font-size:11px" onclick="verificarAtualizacao()" id="btnUpdate" title="Verificar atualizações no GitHub">
-            🔄 Atualizar
-          </button>
           <button class="btn btn-ghost btn-sm" style="flex:1;font-size:11px" onclick="abrirTutorial()" title="Ver tutorial de primeiros passos">
             🎓 Tutorial
           </button>
@@ -1464,6 +1462,56 @@ thead th{color:var(--text-dim)!important;font-weight:700}
       </div>
 
       <!-- ══ FIADO / CONTAS A RECEBER ══ -->
+
+      <!-- ══ AGENDA ══ -->
+      <div id="agenda" class="page">
+        <!-- Resumo -->
+        <div class="ag-resumo">
+          <div class="ag-res-card">
+            <div class="ag-res-label">Hoje</div>
+            <div class="ag-res-val" id="agResHoje" style="color:var(--accent)">0</div>
+          </div>
+          <div class="ag-res-card">
+            <div class="ag-res-label">Esta semana</div>
+            <div class="ag-res-val" id="agResSemana" style="color:var(--yellow)">0</div>
+          </div>
+          <div class="ag-res-card">
+            <div class="ag-res-label">Pendentes</div>
+            <div class="ag-res-val" id="agResPendentes" style="color:var(--red)">0</div>
+          </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="ag-toolbar">
+          <div style="display:flex;gap:6px;flex-wrap:wrap" id="agendaFiltros">
+            <span class="dash-filter-label">Exibir:</span>
+            <button class="filter-btn active" onclick="setAgendaFiltro('proximos',this)">Próximos</button>
+            <button class="filter-btn" onclick="setAgendaFiltro('hoje',this)">Hoje</button>
+            <button class="filter-btn" onclick="setAgendaFiltro('semana',this)">Esta semana</button>
+            <button class="filter-btn" onclick="setAgendaFiltro('todos',this)">Todos</button>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+            <button class="ag-view-btn active" onclick="setAgendaView('lista',this)">☰ Lista</button>
+            <button class="ag-view-btn" onclick="setAgendaView('calendario',this)">📅 Calendário</button>
+            <button class="btn btn-ghost btn-sm" onclick="openModalTiposAgenda()" style="font-size:12px">⚙️ Tipos</button>
+            <button class="btn btn-primary btn-sm" onclick="openModalNovoEvento()" style="font-size:12px">＋ Novo evento</button>
+          </div>
+        </div>
+
+        <!-- Lista -->
+        <div id="agendaListaBody"></div>
+
+        <!-- Calendário -->
+        <div id="agendaCalWrap" style="display:none">
+          <div class="ag-cal-nav">
+            <button class="btn btn-ghost btn-sm" onclick="agCalNav(-1)">◀ Anterior</button>
+            <span class="ag-cal-titulo" id="agCalTitulo"></span>
+            <button class="btn btn-ghost btn-sm" onclick="agCalNav(1)">Próximo ▶</button>
+          </div>
+          <div id="agendaCalBody"></div>
+        </div>
+      </div>
+
       <div id="fiado" class="page">
         <div class="dash-filter-bar" style="margin-bottom:16px">
           <span class="dash-filter-label">Filtrar:</span>
@@ -2581,6 +2629,15 @@ let clientes=lsGet('clientes'),produtos=lsGet('produtos'),vendas=lsGet('vendas')
 let entradas=lsGet('entradas'),caixas=lsGet('caixas'),servicos=lsGet('servicos')
 let despesas=lsGet('despesas'),fornecedores=lsGet('fornecedores'),vendedores=lsGet('vendedores')
 let config=lsGetObj('config',{empresaNome:'',empresaTel:'',logo:'',moeda:'R$',estoqueMin:3})
+let agenda=[],agendaTipos=[]
+
+const AGENDA_TIPOS_DEFAULT=[
+  {id:'td1',nome:'Ensaio',cor:'#C9A84C',icone:'📷'},
+  {id:'td2',nome:'Entrega',cor:'#4ade80',icone:'📦'},
+  {id:'td3',nome:'Reunião',cor:'#a5b4fc',icone:'🤝'},
+  {id:'td4',nome:'Evento',cor:'#f87171',icone:'🎉'},
+]
+
 let itensVenda=[],produtoEditando=null,clienteEditando=null,servicoEditando=null
 let _itemTipo='produto',_novoProdFoto='' // 'produto' | 'servico'
 let _vendaSort='data',_vendaPeriod='todos',_dashPeriod='mes'
@@ -2595,9 +2652,10 @@ function save(){
   lsSet('clientes',clientes);lsSet('produtos',produtos);lsSet('vendas',vendas)
   lsSet('entradas',entradas);lsSet('caixas',caixas);lsSet('servicos',servicos)
   lsSet('despesas',despesas);lsSet('fornecedores',fornecedores);lsSet('vendedores',vendedores)
+  lsSet('agenda',agenda);lsSet('agendaTipos',agendaTipos)
   _syncFirestore()
   renderDashboard();renderClientes();renderProdutos();renderServicos();renderVendas()
-  renderEntradas();renderCaixa();renderDespesas();renderFornecedores();renderVendedores();renderFiado();atualizarResumo();populateSelects()
+  renderEntradas();renderCaixa();renderDespesas();renderFornecedores();renderVendedores();renderFiado();renderAgenda();atualizarResumo();populateSelects()
 }
 
 // ══ SYNC FIRESTORE ══
@@ -2612,6 +2670,7 @@ function _syncFirestore(){
   const payload={
     clientes,produtos,vendas,entradas,caixas,
     servicos,despesas,fornecedores,vendedores,
+    agenda,agendaTipos,
     config:cfgSemLogo,saleIdCnt,
     updatedAt:new Date().toISOString()
   }
@@ -2729,10 +2788,11 @@ function showPage(p,btn){
   document.getElementById(p).classList.add('active')
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'))
   if(btn)btn.classList.add('active')
-  const m={dashboard:['Dashboard','Visão geral do sistema'],clientes:['Clientes','Gerenciar cadastros'],produtos:['Produtos','Estoque e preços'],servicos:['Serviços','Serviços sem controle de estoque'],entrada:['Entrada de Estoque','Adicionar unidades ao estoque'],vendas:['Vendas','Registrar e acompanhar'],fiado:['Fiado / A Receber','Contas a receber e crédito de clientes'],caixa:['Caixa Diário','Controle financeiro do dia'],despesas:['Despesas','Controle de gastos e vencimentos'],fornecedores:['Fornecedores','Cadastro de fornecedores'],vendedores:['Vendedores','Equipe de vendas'],ia:['Assistente IA','Análise e dúvidas sobre seu negócio'],atalhos:['Atalhos de Teclado','Visualize e edite os atalhos do sistema'],relatorios:['Relatórios','Análise por período'],configuracoes:['Configurações','Empresa, moeda e preferências do sistema']}
+  const m={dashboard:['Dashboard','Visão geral do sistema'],clientes:['Clientes','Gerenciar cadastros'],produtos:['Produtos','Estoque e preços'],servicos:['Serviços','Serviços sem controle de estoque'],entrada:['Entrada de Estoque','Adicionar unidades ao estoque'],vendas:['Vendas','Registrar e acompanhar'],fiado:['Fiado / A Receber','Contas a receber e crédito de clientes'],caixa:['Caixa Diário','Controle financeiro do dia'],despesas:['Despesas','Controle de gastos e vencimentos'],fornecedores:['Fornecedores','Cadastro de fornecedores'],vendedores:['Vendedores','Equipe de vendas'],ia:['Assistente IA','Análise e dúvidas sobre seu negócio'],atalhos:['Atalhos de Teclado','Visualize e edite os atalhos do sistema'],relatorios:['Relatórios','Análise por período'],agenda:['Agenda','Compromissos, entregas e eventos'],configuracoes:['Configurações','Empresa, moeda e preferências do sistema']}
   document.getElementById('topbarTitle').textContent=(m[p]||[p,''])[0]
   document.getElementById('topbarSub').textContent=(m[p]||['',p])[1]
   if(p==='relatorios')renderRelatorio()
+  if(p==='agenda')renderAgenda()
   if(p==='caixa')renderCaixa()
   if(p==='entrada'){populateSelects();renderEntradas()}
   if(p==='configuracoes')loadConfigUI()
@@ -6625,6 +6685,243 @@ function iaLimparChat(){
 }
 
 /* ══ INIT ══ */
+
+/* ══ AGENDA ══ */
+let _agendaView='lista',_agendaFiltro='proximos'
+let _agendaCalMes=new Date().getMonth(),_agendaCalAno=new Date().getFullYear()
+let _eventoEditIdx=null
+
+function _agendaGetTipos(){return agendaTipos.length?agendaTipos:AGENDA_TIPOS_DEFAULT}
+function _agendaTipoPorId(id){return _agendaGetTipos().find(t=>t.id===id)||{nome:'Outro',cor:'#7A6E60',icone:'📌'}}
+
+function _agendaFiltrarEventos(){
+  const hj=hoje()
+  const sorted=[...agenda].sort((a,b)=>a.data>b.data?1:a.data<b.data?-1:(a.hora||'')>(b.hora||'')?1:-1)
+  if(_agendaFiltro==='hoje')return sorted.filter(e=>e.data===hj)
+  if(_agendaFiltro==='semana'){const d=new Date();d.setHours(0,0,0,0);const fim=new Date(d);fim.setDate(fim.getDate()+7);return sorted.filter(e=>e.data>=hj&&e.data<=fim.toISOString().slice(0,10))}
+  if(_agendaFiltro==='proximos')return sorted.filter(e=>e.data>=hj||!e.concluido)
+  return sorted
+}
+
+function renderAgenda(){
+  if(_agendaView==='calendario')renderCalendarioAgenda()
+  else renderListaAgenda()
+  _renderAgendaResumo()
+}
+
+function _renderAgendaResumo(){
+  const hj=hoje()
+  document.getElementById('agResHoje').textContent=agenda.filter(e=>e.data===hj).length
+  const d=new Date();d.setHours(0,0,0,0);const fim=new Date(d);fim.setDate(fim.getDate()+7);const fimStr=fim.toISOString().slice(0,10)
+  document.getElementById('agResSemana').textContent=agenda.filter(e=>e.data>=hj&&e.data<=fimStr).length
+  document.getElementById('agResPendentes').textContent=agenda.filter(e=>!e.concluido&&e.data>=hj).length
+}
+
+function renderListaAgenda(){
+  const eventos=_agendaFiltrarEventos()
+  const el=document.getElementById('agendaListaBody')
+  if(!el)return
+  if(!eventos.length){el.innerHTML='<div class="empty-state"><span class="empty-icon">📅</span>Nenhum evento encontrado</div>';return}
+  const grupos={},hj=hoje()
+  eventos.forEach(e=>{if(!grupos[e.data])grupos[e.data]=[];grupos[e.data].push(e)})
+  el.innerHTML=Object.entries(grupos).sort((a,b)=>a[0]>b[0]?1:-1).map(([data,evs])=>{
+    const isHoje=data===hj
+    return'<div class="ag-grupo"><div class="ag-grupo-label'+(isHoje?' ag-hoje':'')+'">'+(isHoje?'Hoje — ':'')+fmtData(data)+'</div>'+evs.map(e=>_renderEventoCard(e)).join('')+'</div>'
+  }).join('')
+}
+
+function _renderEventoCard(e){
+  const tipo=_agendaTipoPorId(e.tipo)
+  return'<div class="ag-card'+(e.concluido?' ag-card-concluido':'')+'">'+
+    '<div class="ag-card-left">'+
+      '<span class="ag-tipo-badge" style="background:'+tipo.cor+'22;color:'+tipo.cor+';border:1px solid '+tipo.cor+'44">'+tipo.icone+' '+escHtml(tipo.nome)+'</span>'+
+      (e.hora?'<span class="ag-hora">🕐 '+e.hora+'</span>':'')+
+    '</div>'+
+    '<div class="ag-card-body">'+
+      '<div class="ag-card-titulo">'+escHtml(e.titulo)+'</div>'+
+      '<div class="ag-card-meta">'+
+        (e.clienteNome?'<span>👤 '+escHtml(e.clienteNome)+'</span>':'')+
+        (e.vendedorNome?'<span>💼 '+escHtml(e.vendedorNome)+'</span>':'')+
+        (e.vendaId?'<span>🧾 '+escHtml(e.vendaId)+'</span>':'')+
+        (e.obs?'<span class="ag-obs">📝 '+escHtml(e.obs)+'</span>':'')+
+      '</div>'+
+    '</div>'+
+    '<div class="ag-card-actions">'+
+      '<button class="btn btn-ghost btn-sm" onclick="toggleEventoConcluido(''+e.id+'')" title="'+(e.concluido?'Reabrir':'Concluir')+'">'+(e.concluido?'↩️':'✅')+'</button>'+
+      '<button class="btn btn-ghost btn-sm" onclick="openModalEditarEvento(''+e.id+'')" title="Editar">✏️</button>'+
+      '<button class="btn btn-ghost btn-sm" onclick="excluirEvento(''+e.id+'')" title="Excluir">🗑️</button>'+
+    '</div>'+
+  '</div>'
+}
+
+function renderCalendarioAgenda(){
+  const el=document.getElementById('agendaCalBody');if(!el)return
+  const ano=_agendaCalAno,mes=_agendaCalMes
+  const primeiroDia=new Date(ano,mes,1).getDay()
+  const diasNoMes=new Date(ano,mes+1,0).getDate()
+  const nomes=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb']
+  const hj=hoje()
+  const nomeMes=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][mes]
+  const tit=document.getElementById('agCalTitulo');if(tit)tit.textContent=nomeMes+' '+ano
+  const mesStr=String(ano)+'-'+String(mes+1).padStart(2,'0')
+  const evMes=agenda.filter(e=>e.data&&e.data.startsWith(mesStr))
+  let html='<div class="ag-cal-grid">'+nomes.map(n=>'<div class="ag-cal-header">'+n+'</div>').join('')
+  for(let i=0;i<primeiroDia;i++)html+='<div class="ag-cal-cell ag-cal-empty"></div>'
+  for(let d=1;d<=diasNoMes;d++){
+    const ds=String(ano)+'-'+String(mes+1).padStart(2,'0')+'-'+String(d).padStart(2,'0')
+    const evDia=evMes.filter(e=>e.data===ds)
+    const isHoje=ds===hj
+    html+='<div class="ag-cal-cell'+(isHoje?' ag-cal-hoje':'')+'" onclick="openModalNovoEvento(''+ds+'')">'+
+      '<span class="ag-cal-num">'+d+'</span>'+
+      evDia.slice(0,3).map(e=>{const t=_agendaTipoPorId(e.tipo);return'<div class="ag-cal-ev'+(e.concluido?' ag-cal-ev-done':'')+'" style="background:'+t.cor+'33;color:'+t.cor+'" title="'+escHtml(e.titulo)+'">'+t.icone+' '+escHtml(e.titulo.length>12?e.titulo.slice(0,12)+'…':e.titulo)+'</div>'}).join('')+
+      (evDia.length>3?'<div class="ag-cal-mais">+'+( evDia.length-3)+' mais</div>':'')+
+    '</div>'
+  }
+  html+='</div>'
+  el.innerHTML=html
+}
+
+function agCalNav(dir){
+  _agendaCalMes+=dir
+  if(_agendaCalMes>11){_agendaCalMes=0;_agendaCalAno++}
+  if(_agendaCalMes<0){_agendaCalMes=11;_agendaCalAno--}
+  renderCalendarioAgenda()
+}
+
+function setAgendaView(v,btn){
+  _agendaView=v
+  document.querySelectorAll('.ag-view-btn').forEach(b=>b.classList.remove('active'))
+  if(btn)btn.classList.add('active')
+  const lista=document.getElementById('agendaListaBody')
+  const cal=document.getElementById('agendaCalWrap')
+  if(lista)lista.style.display=v==='lista'?'block':'none'
+  if(cal)cal.style.display=v==='calendario'?'block':'none'
+  renderAgenda()
+}
+
+function setAgendaFiltro(f,btn){
+  _agendaFiltro=f
+  document.querySelectorAll('#agendaFiltros .filter-btn').forEach(b=>b.classList.remove('active'))
+  if(btn)btn.classList.add('active')
+  renderListaAgenda()
+}
+
+function _popularTiposSelect(){
+  const sel=document.getElementById('agEvTipo');if(!sel)return
+  sel.innerHTML=_agendaGetTipos().map(t=>'<option value="'+t.id+'">'+t.icone+' '+escHtml(t.nome)+'</option>').join('')
+}
+
+function _popularClientesDatalist(){
+  const dl=document.getElementById('agEvClienteList');if(!dl)return
+  dl.innerHTML=clientes.map(c=>'<option value="'+escHtml(c.nome)+'">').join('')
+}
+
+function _popularVendedoresSelect(){
+  const sel=document.getElementById('agEvVendedor');if(!sel)return
+  sel.innerHTML='<option value="">— Nenhum —</option>'+vendedores.map(v=>'<option value="'+escHtml(v.nome)+'">'+escHtml(v.nome)+'</option>').join('')
+}
+
+function openModalNovoEvento(dataPresel){
+  _eventoEditIdx=null
+  _popularTiposSelect();_popularClientesDatalist();_popularVendedoresSelect()
+  document.getElementById('agEvTitulo').value=''
+  document.getElementById('agEvData').value=dataPresel||hoje()
+  document.getElementById('agEvHora').value=''
+  document.getElementById('agEvCliente').value=''
+  document.getElementById('agEvVendedor').value=''
+  document.getElementById('agEvVendaId').value=''
+  document.getElementById('agEvObs').value=''
+  document.getElementById('modalAgEvTitulo').textContent='Novo evento'
+  openModal('modalAgendaEvento')
+}
+
+function openModalEditarEvento(id){
+  const idx=agenda.findIndex(e=>e.id===id);if(idx<0)return
+  const e=agenda[idx];_eventoEditIdx=idx
+  _popularTiposSelect();_popularClientesDatalist();_popularVendedoresSelect()
+  document.getElementById('agEvTitulo').value=e.titulo||''
+  document.getElementById('agEvTipo').value=e.tipo||''
+  document.getElementById('agEvData').value=e.data||''
+  document.getElementById('agEvHora').value=e.hora||''
+  document.getElementById('agEvCliente').value=e.clienteNome||''
+  document.getElementById('agEvVendedor').value=e.vendedorNome||''
+  document.getElementById('agEvVendaId').value=e.vendaId||''
+  document.getElementById('agEvObs').value=e.obs||''
+  document.getElementById('modalAgEvTitulo').textContent='Editar evento'
+  openModal('modalAgendaEvento')
+}
+
+function salvarEvento(){
+  const titulo=document.getElementById('agEvTitulo').value.trim()
+  const data=document.getElementById('agEvData').value
+  if(!titulo){setFieldError('fg-agEvTitulo',true);return}
+  if(!data){setFieldError('fg-agEvData',true);return}
+  setFieldError('fg-agEvTitulo',false);setFieldError('fg-agEvData',false)
+  const ev={
+    id:_eventoEditIdx!==null?agenda[_eventoEditIdx].id:('ev'+Date.now()),
+    titulo,tipo:document.getElementById('agEvTipo').value,data,
+    hora:document.getElementById('agEvHora').value||'',
+    clienteNome:document.getElementById('agEvCliente').value.trim(),
+    vendedorNome:document.getElementById('agEvVendedor').value,
+    vendaId:document.getElementById('agEvVendaId').value.trim(),
+    obs:document.getElementById('agEvObs').value.trim(),
+    concluido:_eventoEditIdx!==null?agenda[_eventoEditIdx].concluido:false,
+    criadoEm:_eventoEditIdx!==null?(agenda[_eventoEditIdx].criadoEm||new Date().toISOString()):new Date().toISOString()
+  }
+  if(_eventoEditIdx!==null)agenda[_eventoEditIdx]=ev;else agenda.push(ev)
+  closeModal('modalAgendaEvento')
+  toast(_eventoEditIdx!==null?'✅ Evento atualizado!':'✅ Evento criado!')
+  save()
+}
+
+function excluirEvento(id){
+  showConfirm('Excluir este evento?',()=>{
+    const idx=agenda.findIndex(e=>e.id===id);if(idx>=0)agenda.splice(idx,1)
+    toast('🗑️ Evento excluído.','info');save()
+  })
+}
+
+function toggleEventoConcluido(id){
+  const ev=agenda.find(e=>e.id===id);if(!ev)return
+  ev.concluido=!ev.concluido
+  toast(ev.concluido?'✅ Evento concluído!':'↩️ Evento reaberto.','info');save()
+}
+
+function openModalTiposAgenda(){renderTiposAgenda();openModal('modalAgendaTipos')}
+
+function renderTiposAgenda(){
+  const el=document.getElementById('agTiposLista');if(!el)return
+  const tipos=_agendaGetTipos()
+  if(!tipos.length){el.innerHTML='<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Nenhum tipo cadastrado</div>';return}
+  el.innerHTML=tipos.map(t=>'<div class="ag-tipo-row">'+
+    '<span style="font-size:18px">'+t.icone+'</span>'+
+    '<span class="badge" style="background:'+t.cor+'22;color:'+t.cor+';border:1px solid '+t.cor+'44;flex:1">'+escHtml(t.nome)+'</span>'+
+    '<button class="btn btn-ghost btn-sm" onclick="excluirTipoAgenda(''+t.id+'')">🗑️</button>'+
+  '</div>').join('')
+}
+
+function salvarTipoAgenda(){
+  const nome=document.getElementById('agTipoNome').value.trim()
+  const cor=document.getElementById('agTipoCor').value
+  const icone=document.getElementById('agTipoIcone').value.trim()||'📌'
+  if(!nome){toast('Informe o nome do tipo.','error');return}
+  if(!agendaTipos.length)agendaTipos=[...AGENDA_TIPOS_DEFAULT]
+  agendaTipos.push({id:'t'+Date.now(),nome,cor,icone})
+  document.getElementById('agTipoNome').value=''
+  document.getElementById('agTipoIcone').value=''
+  renderTiposAgenda();_popularTiposSelect();save();toast('✅ Tipo criado!')
+}
+
+function excluirTipoAgenda(id){
+  const tipos=_agendaGetTipos()
+  if(tipos.length<=1){toast('Mantenha ao menos 1 tipo.','error');return}
+  showConfirm('Excluir este tipo?',()=>{
+    if(!agendaTipos.length)agendaTipos=[...AGENDA_TIPOS_DEFAULT]
+    agendaTipos=agendaTipos.filter(t=>t.id!==id)
+    renderTiposAgenda();save();toast('🗑️ Tipo removido.','info')
+  })
+}
+
 function render(){
   loadCategorias()
   applyConfig()
@@ -6711,6 +7008,8 @@ async function _iniciarApp(){
         despesas=d.despesas||[]
         fornecedores=d.fornecedores||[]
         vendedores=d.vendedores||[]
+        agenda=d.agenda||[]
+        agendaTipos=d.agendaTipos||[]
         if(d.config){
           // Restaura logo do localStorage (não é salvo no Firestore por limite de tamanho)
           const logoLocal=lsGetObj('config',{}).logo||''
@@ -6848,6 +7147,90 @@ document.getElementById('tabWarning').style.display='none'
       style="flex-shrink:0;height:38px;padding:0 14px;font-size:13px">↑</button>
   </div>
   <div class="ia-win-powered">Shift+Enter para nova linha · dados do sistema enviados como contexto</div>
+</div>
+
+
+<!-- ══ MODAL: NOVO/EDITAR EVENTO ══ -->
+<div class="modal-overlay" id="modalAgendaEvento">
+  <div class="modal-box" style="max-width:520px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div style="font-size:17px;font-weight:700" id="modalAgEvTitulo">Novo evento</div>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('modalAgendaEvento')">✕</button>
+    </div>
+    <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group" id="fg-agEvTitulo" style="grid-column:1/-1">
+        <label>Título <span style="color:var(--red)">*</span></label>
+        <input id="agEvTitulo" placeholder="Ex: Ensaio família Silva…" onkeydown="if(event.key==='Enter')salvarEvento()">
+        <span class="field-error">Campo obrigatório</span>
+      </div>
+      <div class="form-group">
+        <label>Tipo</label>
+        <select id="agEvTipo" style="width:100%"></select>
+      </div>
+      <div class="form-group" id="fg-agEvData">
+        <label>Data <span style="color:var(--red)">*</span></label>
+        <input type="date" id="agEvData" style="width:100%">
+        <span class="field-error">Campo obrigatório</span>
+      </div>
+      <div class="form-group">
+        <label>Horário <span style="color:var(--text-muted);font-weight:400">(opcional)</span></label>
+        <input type="time" id="agEvHora" style="width:100%">
+      </div>
+      <div class="form-group">
+        <label>Cliente <span style="color:var(--text-muted);font-weight:400">(opcional)</span></label>
+        <input id="agEvCliente" placeholder="Nome do cliente…" list="agEvClienteList">
+        <datalist id="agEvClienteList"></datalist>
+      </div>
+      <div class="form-group">
+        <label>Vendedor <span style="color:var(--text-muted);font-weight:400">(opcional)</span></label>
+        <select id="agEvVendedor" style="width:100%"></select>
+      </div>
+      <div class="form-group">
+        <label>Nº Venda <span style="color:var(--text-muted);font-weight:400">(opcional)</span></label>
+        <input id="agEvVendaId" placeholder="Ex: V0023">
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label>Observações <span style="color:var(--text-muted);font-weight:400">(opcional)</span></label>
+        <textarea id="agEvObs" rows="2" placeholder="Detalhes adicionais…" style="width:100%;resize:vertical"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn btn-ghost" onclick="closeModal('modalAgendaEvento')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarEvento()">💾 Salvar evento</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: GERENCIAR TIPOS ══ -->
+<div class="modal-overlay" id="modalAgendaTipos">
+  <div class="modal-box" style="max-width:420px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div style="font-size:17px;font-weight:700">⚙️ Tipos de evento</div>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('modalAgendaTipos')">✕</button>
+    </div>
+    <div id="agTiposLista" style="margin-bottom:18px"></div>
+    <div style="background:var(--surface3);border-radius:var(--radius);padding:14px;display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em">Novo tipo</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group" style="margin:0">
+          <label style="font-size:11px">Nome</label>
+          <input id="agTipoNome" placeholder="Ex: Reunião…">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label style="font-size:11px">Ícone (emoji)</label>
+          <input id="agTipoIcone" placeholder="Ex: 🤝" maxlength="4">
+        </div>
+      </div>
+      <div class="form-group" style="margin:0">
+        <label style="font-size:11px">Cor</label>
+        <input type="color" id="agTipoCor" value="#C9A84C" style="width:100%;height:36px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--surface2);cursor:pointer;padding:2px">
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="salvarTipoAgenda()">＋ Adicionar tipo</button>
+    </div>
+    <div class="modal-actions" style="margin-top:14px">
+      <button class="btn btn-ghost" onclick="closeModal('modalAgendaTipos')">Fechar</button>
+    </div>
+  </div>
 </div>
 
 </body>
