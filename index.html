@@ -10,8 +10,9 @@
 <meta name="apple-mobile-web-app-title" content="ASSENT">
 <meta name="description" content="Sistema de gestão empresarial offline">
 <link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,8 94,80 6,80' fill='none' stroke='%23C9A84C' stroke-width='10' stroke-linejoin='round'/%3E%3Cline x1='50' y1='8' x2='50' y2='80' stroke='%23C9A84C' stroke-width='5' opacity='.5'/%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<title>ASSENT Sistema v4.6</title>
+<title>ASSENT Sistema v1.2</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
 <!-- Firebase SDKs -->
 <script type="module">
@@ -1268,7 +1269,7 @@ thead th{color:var(--text-dim)!important;font-weight:700}
     <div class="logo">
       <div class="logo-text" onclick="showPage('configuracoes',document.querySelector('[data-tip=Configurações]'))" style="cursor:pointer" title="Abrir configurações">
         <div class="logo-name">ASS<span>ENT</span></div>
-        <div class="logo-ver">v4.6 · sistema</div>
+        <div class="logo-ver">v1.2 · sistema</div>
         <div id="backupStatus" style="font-size:10px;color:var(--green);margin-top:2px;display:none;font-family:'JetBrains Mono',monospace"></div>
       </div>
       <button class="sidebar-toggle" onclick="toggleSidebar()" title="Recolher menu">◀</button>
@@ -1319,7 +1320,7 @@ thead th{color:var(--text-dim)!important;font-weight:700}
         </div>
         <div class="sidebar-footer-brand">ASS<span>ENT</span></div>
         <div class="sidebar-footer-sub">Sistema de Gestão</div>
-        <div class="sidebar-footer-copy">© 2026 ASSENT · v4.6</div>
+        <div class="sidebar-footer-copy">© 2026 ASSENT · v1.2</div>
       </div>
     </div>
   </div>
@@ -1563,6 +1564,7 @@ thead th{color:var(--text-dim)!important;font-weight:700}
                   <input type="hidden" id="servicoCategoria">
                 </div>
                 <button type="button" class="btn btn-ghost btn-sm" onclick="adicionarCategoria()" title="Nova categoria" style="flex-shrink:0;padding:0 10px;font-size:16px">＋</button>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="openModalGerenciarCategorias()" title="Gerenciar categorias" style="flex-shrink:0;padding:0 10px;font-size:14px">⚙️</button>
               </div>
             </div>
             <div class="form-group" style="grid-column:1/-1">
@@ -3584,7 +3586,7 @@ function imprimirVenda(){
     (v.obs?'<div style="background:#f9f9f9;border:1px solid #ddd;border-radius:6px;padding:10px;margin-bottom:14px;font-size:12px">'+escHtml(v.obs)+'</div>':'')+
     '<table><thead><tr><th>Produto</th><th style="text-align:center">Qtd</th><th style="text-align:right">Preço</th><th style="text-align:right">Custo</th><th style="text-align:center">Desc.</th><th style="text-align:right">Total</th></tr></thead><tbody>'+linhas+'</tbody></table>'+
     '<div class="totals"><div class="tot-item"><div class="tot-label">Subtotal</div><div class="tot-value">'+brl(sb)+'</div></div><div class="tot-item"><div class="tot-label">Descontos</div><div class="tot-value">'+brl(sd)+'</div></div><div class="tot-item"><div class="tot-label">Total</div><div class="tot-value" style="color:#16a34a">'+brl(total)+'</div></div><div class="tot-item"><div class="tot-label">Lucro est.</div><div class="tot-value" style="color:#4f46e5">'+brl(total-sc)+'</div></div></div>'+
-    '<div class="footer">ASSENT Sistema v4.6</div><script>window.onload=function(){window.print();window.onafterprint=function(){window.close()}}<\/script></body></html>'
+    '<div class="footer">ASSENT Sistema v1.2</div><script>window.onload=function(){window.print();window.onafterprint=function(){window.close()}}<\/script></body></html>'
   const w=window.open('','_blank','width=900,height=700');if(!w){toast('Pop-up bloqueado.','warning');return}
   w.document.write(html);w.document.close()
 }
@@ -3963,7 +3965,7 @@ function imprimirRelatorio(){
     '<h1>Relatório — '+tipoLabel+'</h1><div class="sub">Período: '+periodoLabel+' · Gerado em '+new Date().toLocaleDateString('pt-BR')+' às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+'</div>'+
     '<div class="summary">'+document.getElementById('relSummary').innerHTML.replace(/class="rel-sum-card"/g,'class="sum-card"').replace(/class="rel-sum-label"/g,'class="sum-label"').replace(/class="rel-sum-value"[^>]*>/g,_=>'class="sum-value">')+'</div>'+
     document.getElementById('relTableContent').innerHTML+
-    '<div class="footer">ASSENT Sistema v4.6</div><script>window.onload=function(){window.print();window.onafterprint=function(){window.close()}}<\/script></body></html>'
+    '<div class="footer">ASSENT Sistema v1.2</div><script>window.onload=function(){window.print();window.onafterprint=function(){window.close()}}<\/script></body></html>'
   const w=window.open('','_blank','width=1000,height=750');if(!w){toast('Pop-up bloqueado.','warning');return}
   w.document.write(html);w.document.close()
 }
@@ -6211,7 +6213,7 @@ function renderRelFiado(pv,sumEl,titleEl,countEl,contentEl){
 }
 
 /* ══ ATUALIZAÇÃO VIA GITHUB ══ */
-const VERSAO_ATUAL='4.6'
+const VERSAO_ATUAL='1.2'
 const GITHUB_REPO='michaeldsc10/assent'
 const GITHUB_PAGES_URL='https://michaeldsc10.github.io/assent/'
 
@@ -6856,7 +6858,7 @@ function iaAdicionarMensagem(papel, texto, tipo){
   const div = document.createElement('div')
   div.className = 'ia-msg ' + papel
   div.innerHTML =
-    '<div class="ia-avatar">' + (isUser ? '👤' : '<svg width="16" height="16" viewBox="0 0 100 100" fill="none"><polygon points="50,6 94,76 6,76" fill="none" stroke="#C9A84C" stroke-width="9" stroke-linejoin="round"/><line x1="50" y1="6" x2="50" y2="76" stroke="#C9A84C" stroke-width="4" opacity=".45"/></svg>') + '</div>' +
+    '<div class="ia-avatar">' + (isUser ? '👤' : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 100 100"><polygon points="50,6 94,76 6,76" fill="none" stroke="#C9A84C" stroke-width="9" stroke-linejoin="round"/><line x1="50" y1="6" x2="50" y2="76" stroke="#C9A84C" stroke-width="4" opacity=".45"/></svg>') + '</div>' +
     '<div class="ia-bubble ' + (tipo || papel) + '">' + escHtml(texto).replace(/\n/g,'<br>') + '</div>'
   el.appendChild(div)
   el.scrollTop = el.scrollHeight
@@ -6869,7 +6871,7 @@ function iaAdicionarLoading(){
   const div = document.createElement('div')
   div.className = 'ia-msg assistant'
   div.id = 'iaLoadingMsg'
-  div.innerHTML = '<div class="ia-avatar"><svg width="16" height="16" viewBox="0 0 100 100" fill="none"><polygon points="50,6 94,76 6,76" fill="none" stroke="#C9A84C" stroke-width="9" stroke-linejoin="round"/><line x1="50" y1="6" x2="50" y2="76" stroke="#C9A84C" stroke-width="4" opacity=".45"/></svg></div><div class="ia-bubble loading">Pensando…</div>'
+  div.innerHTML = '<div class="ia-avatar"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 100 100"><polygon points="50,6 94,76 6,76" fill="none" stroke="#C9A84C" stroke-width="9" stroke-linejoin="round"/><line x1="50" y1="6" x2="50" y2="76" stroke="#C9A84C" stroke-width="4" opacity=".45"/></svg></div><div class="ia-bubble loading">Pensando…</div>'
   el.appendChild(div)
   el.scrollTop = el.scrollHeight
   return div
