@@ -6557,6 +6557,62 @@ function abrirModalCategoria(preenchido){
   setTimeout(()=>document.getElementById('novaCatInput')?.focus(),80)
 }
 
+function openModalGerenciarCategorias(){
+  renderGerenciarCategorias()
+  openModal('modalGerenciarCategorias')
+}
+
+function renderGerenciarCategorias(){
+  const el=document.getElementById('gerenciarCatsLista')
+  if(!el)return
+  if(!servicoCategorias.length){
+    el.innerHTML='<div style="color:var(--text-muted);font-size:13px;padding:12px 0;text-align:center">Nenhuma categoria cadastrada</div>'
+    return
+  }
+  el.innerHTML=servicoCategorias.map((c,i)=>
+    '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">'+
+      '<span style="flex:1;font-size:14px">'+escHtml(c)+'</span>'+
+      '<button class="btn btn-ghost btn-sm" onclick="editarCategoria('+i+')" title="Renomear">✏️</button>'+
+      '<button class="btn btn-ghost btn-sm" onclick="excluirCategoria('+i+')" title="Excluir">🗑️</button>'+
+    '</div>'
+  ).join('')
+}
+
+function editarCategoria(i){
+  const nome=prompt('Renomear categoria:',servicoCategorias[i])
+  if(!nome||!nome.trim())return
+  const novo=nome.trim()
+  if(servicoCategorias.some((c,j)=>j!==i&&c.toLowerCase()===novo.toLowerCase())){
+    toast('Já existe uma categoria com esse nome.','error');return
+  }
+  const antigo=servicoCategorias[i]
+  servicoCategorias[i]=novo
+  servicoCategorias.sort((a,b)=>a.localeCompare(b,'pt-BR'))
+  // Atualiza serviços que usavam a categoria antiga
+  servicos.forEach(s=>{if(s.categoria===antigo)s.categoria=novo})
+  saveCategorias();save()
+  renderGerenciarCategorias()
+  toast('✅ Categoria renomeada!')
+}
+
+function excluirCategoria(i){
+  const nome=servicoCategorias[i]
+  const emUso=servicos.filter(s=>s.categoria===nome).length
+  const msg=emUso
+    ?'Excluir "'+nome+'"? '+emUso+' serviço(s) ficarão sem categoria.'
+    :'Excluir a categoria "'+nome+'"?'
+  showConfirm(msg,()=>{
+    servicoCategorias.splice(i,1)
+    saveCategorias()
+    renderGerenciarCategorias()
+    toast('🗑️ Categoria removida.','info')
+  })
+}
+
+window.openModalGerenciarCategorias=openModalGerenciarCategorias
+window.editarCategoria=editarCategoria
+window.excluirCategoria=excluirCategoria
+
 function confirmarNovaCategoria(){
   const n=(document.getElementById('novaCatInput')?.value||'').trim()
   if(!n){setErr('fg-novacat',true);return}
@@ -6656,32 +6712,93 @@ if('serviceWorker' in navigator){
 let _iaMensagens = [] // histórico da conversa
 
 function iaContexto(){
-  // Monta um resumo dos dados do sistema para dar contexto ao Claude
   const hj = hoje()
-  const vendasMes = vendas.filter(v => v.data && v.data.slice(0,7) === hj.slice(0,7))
+  const anoMes = hj.slice(0,7)
+  const vendasMes = vendas.filter(v => v.data && v.data.slice(0,7) === anoMes)
   const faturMes = vendasMes.reduce((t,v) => t+(v.total||0), 0)
+  const mesAnt = new Date(); mesAnt.setMonth(mesAnt.getMonth()-1)
+  const anoMesAnt = mesAnt.toISOString().slice(0,7)
+  const vendasMesAnt = vendas.filter(v => v.data && v.data.slice(0,7) === anoMesAnt)
+  const faturMesAnt = vendasMesAnt.reduce((t,v) => t+(v.total||0), 0)
   const despPend = despesas.filter(d => !d.paga)
+  const despVenc = despesas.filter(d => !d.paga && d.venc < hj)
   const fiadoPend = vendas.filter(v => v.fiado && !v.fiadoRecebido)
   const estoqueMin = config.estoqueMin || 3
-  const semEstoque = produtos.filter(p => p.estoque <= 0).length
-  const baixoEstoque = produtos.filter(p => p.estoque > 0 && p.estoque <= estoqueMin).length
+  const semEstoque = produtos.filter(p => p.estoque <= 0)
+  const baixoEstoque = produtos.filter(p => p.estoque > 0 && p.estoque <= estoqueMin)
 
-  return `Você é o assistente do sistema de gestão ASSENT. Responda em português, de forma clara e direta.
-Ajude o usuário com análises do negócio, dúvidas sobre o sistema, sugestões e interpretação de dados.
+  // Top 5 produtos mais vendidos
+  const mapProd = {}
+  vendas.forEach(v => (v.itens||[]).forEach(it => {
+    if(it.tipo==='servico') return
+    const k = it.produto||'?'
+    if(!mapProd[k]) mapProd[k] = {qtd:0,fat:0}
+    mapProd[k].qtd += it.qtd
+    mapProd[k].fat += it.preco*it.qtd*(1-(it.desconto||0)/100)
+  }))
+  const topProd = Object.entries(mapProd).sort((a,b)=>b[1].qtd-a[1].qtd).slice(0,5)
+    .map(([n,d])=>'  • '+n+': '+d.qtd+' un. / '+brl(d.fat)).join('\n')
 
-=== RESUMO DO NEGÓCIO (hoje: ${hj}) ===
-Empresa: ${config.empresaNome || 'Não configurada'}
-Clientes cadastrados: ${clientes.length}
-Produtos: ${produtos.length} (${semEstoque} sem estoque, ${baixoEstoque} abaixo do mínimo)
-Serviços: ${servicos.length}
-Vendas este mês: ${vendasMes.length} → ${brl(faturMes)}
-Total de vendas no sistema: ${vendas.length}
-Despesas pendentes: ${despPend.length} → ${brl(despPend.reduce((t,d)=>t+d.valor,0))}
-Fiado em aberto: ${fiadoPend.length} → ${brl(fiadoPend.reduce((t,v)=>t+(v.total||0),0))}
-Vendedores: ${vendedores.length}
-Fornecedores: ${fornecedores.length}
+  // Top 5 clientes
+  const mapCli = {}
+  vendas.forEach(v => {
+    const k = v.cliente||'Sem nome'
+    if(!mapCli[k]) mapCli[k] = {qtd:0,fat:0}
+    mapCli[k].qtd++; mapCli[k].fat += v.total||0
+  })
+  const topCli = Object.entries(mapCli).sort((a,b)=>b[1].fat-a[1].fat).slice(0,5)
+    .map(([n,d])=>'  • '+n+': '+d.qtd+' compras / '+brl(d.fat)).join('\n')
 
-Quando o usuário perguntar sobre dados específicos (ex: "qual meu produto mais vendido"), use os dados acima para responder. Se precisar de mais detalhes que não estão aqui, diga que o usuário pode verificar nos relatórios do sistema.`
+  // Formas de pagamento
+  const mapPgto = {}
+  vendas.forEach(v => { const k=v.formaPagamento||'Não informado'; mapPgto[k]=(mapPgto[k]||0)+1 })
+  const topPgto = Object.entries(mapPgto).sort((a,b)=>b[1]-a[1]).slice(0,4)
+    .map(([k,v])=>k+' ('+v+')').join(', ')
+
+  // Próximos eventos
+  const proxEvs = agenda.filter(e=>e.data>=hj&&!e.concluido)
+    .sort((a,b)=>a.data>b.data?1:-1).slice(0,5)
+    .map(e=>'  • '+fmtData(e.data)+(e.hora?' '+e.hora:'')+' — '+e.titulo+(e.clienteNome?' ('+e.clienteNome+')':'')).join('\n')
+
+  // Despesas vencendo em 7 dias
+  const emBreve = new Date(); emBreve.setDate(emBreve.getDate()+7)
+  const emBreveStr = emBreve.toISOString().slice(0,10)
+  const despBreve = despesas.filter(d=>!d.paga&&d.venc>=hj&&d.venc<=emBreveStr)
+    .map(d=>'  • '+fmtData(d.venc)+' — '+d.nome+': '+brl(d.valor)).join('\n')
+
+  const variacao = faturMesAnt>0?((faturMes-faturMesAnt)/faturMesAnt*100).toFixed(1)+'%':'—'
+  const semEstNomes = semEstoque.map(p=>p.nome).slice(0,3).join(', ')+(semEstoque.length>3?' e mais...':'')
+
+  return 'Você é o assistente integrado do ASSENT, sistema de gestão empresarial. Responda sempre em português, com objetividade e precisão.\n\n'+
+'SOBRE O SISTEMA ASSENT:\n'+
+'Módulos disponíveis: Clientes, Produtos, Serviços, Vendas, Entrada de Estoque, Caixa Diário, Despesas, Fornecedores, Vendedores, Fiado/A Receber, Agenda, Relatórios (DRE, faturamento, lucro, estoque, ranking, clientes, vendedores, formas de pagamento) e este Assistente IA.\n\n'+
+'COMO AGIR:\n'+
+'- Use os dados reais abaixo para responder perguntas sobre o negócio\n'+
+'- Compare com o mês anterior quando fizer análise de faturamento\n'+
+'- Sugira ações concretas com base nos dados (estoque zerado = repor, despesa vencida = pagar)\n'+
+'- Para dúvidas sobre onde encontrar algo no sistema, explique o caminho exato\n'+
+'- Você pode discutir estratégia, precificação, gestão financeira, atendimento\n'+
+'- Seja direto e prático, sem enrolação\n\n'+
+'=== DADOS DO NEGÓCIO ('+hj+') ===\n'+
+'Empresa: '+(config.empresaNome||'Não configurada')+' | Moeda: '+(config.moeda||'R$')+'\n\n'+
+'FATURAMENTO:\n'+
+'  Este mês ('+anoMes+'): '+brl(faturMes)+' em '+vendasMes.length+' vendas\n'+
+'  Mês anterior ('+anoMesAnt+'): '+brl(faturMesAnt)+' em '+vendasMesAnt.length+' vendas\n'+
+'  Variação: '+variacao+'\n'+
+'  Total histórico: '+vendas.length+' vendas\n\n'+
+'CADASTROS: Clientes: '+clientes.length+' | Produtos: '+produtos.length+' | Serviços: '+servicos.length+' | Vendedores: '+vendedores.length+' | Fornecedores: '+fornecedores.length+'\n\n'+
+'ESTOQUE:\n'+
+'  Sem estoque: '+semEstoque.length+(semEstoque.length?' ('+semEstNomes+')':'')+'\n'+
+'  Estoque baixo (≤'+estoqueMin+'): '+baixoEstoque.length+'\n\n'+
+'FINANCEIRO:\n'+
+'  Despesas pendentes: '+despPend.length+' → '+brl(despPend.reduce((t,d)=>t+d.valor,0))+'\n'+
+'  Despesas vencidas: '+despVenc.length+' → '+brl(despVenc.reduce((t,d)=>t+d.valor,0))+'\n'+
+'  Fiado em aberto: '+fiadoPend.length+' → '+brl(fiadoPend.reduce((t,v)=>t+(v.total||0),0))+'\n'+
+(despBreve?'  Vencendo em 7 dias:\n'+despBreve+'\n':'')+
+'\nAGENDA (próximos):\n'+(proxEvs||'  Nenhum evento')+'\n\n'+
+'TOP PRODUTOS:\n'+(topProd||'  Sem dados')+'\n\n'+
+'TOP CLIENTES:\n'+(topCli||'  Sem dados')+'\n\n'+
+'FORMAS DE PAGAMENTO: '+(topPgto||'—')
 }
 
 /* ══ ASSISTENTE IA FLUTUANTE ══ */
@@ -7327,9 +7444,12 @@ document.getElementById('tabWarning').style.display='none'
         onkeydown="if(event.key==='Enter')confirmarNovaCategoria()">
       <span class="field-error">Campo obrigatório</span>
     </div>
-    <div class="modal-actions" style="margin-top:16px">
-      <button class="btn btn-ghost" onclick="closeModal('modalNovaCategoria')">Cancelar</button>
-      <button class="btn btn-primary" onclick="confirmarNovaCategoria()">＋ Criar categoria</button>
+    <div class="modal-actions" style="margin-top:16px;justify-content:space-between">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('modalNovaCategoria');openModalGerenciarCategorias()" style="font-size:12px">⚙️ Gerenciar</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" onclick="closeModal('modalNovaCategoria')">Cancelar</button>
+        <button class="btn btn-primary" onclick="confirmarNovaCategoria()">＋ Criar categoria</button>
+      </div>
     </div>
   </div>
 </div>
@@ -7470,6 +7590,21 @@ document.getElementById('tabWarning').style.display='none'
         <button class="btn btn-ghost" onclick="closeModal('modalAgDetEvento')">Fechar</button>
         <button class="btn btn-primary" onclick="imprimirEvento()">🖨️ Imprimir</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: GERENCIAR CATEGORIAS ══ -->
+<div class="modal-overlay" id="modalGerenciarCategorias">
+  <div class="modal-box" style="max-width:400px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div style="font-size:16px;font-weight:700">⚙️ Gerenciar categorias</div>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('modalGerenciarCategorias')">✕</button>
+    </div>
+    <div id="gerenciarCatsLista" style="max-height:320px;overflow-y:auto"></div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn btn-ghost" onclick="closeModal('modalGerenciarCategorias')">Fechar</button>
+      <button class="btn btn-primary btn-sm" onclick="closeModal('modalGerenciarCategorias');abrirModalCategoria('')">＋ Nova categoria</button>
     </div>
   </div>
 </div>
