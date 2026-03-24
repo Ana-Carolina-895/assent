@@ -46,34 +46,48 @@
   window._fbSetDoc = (path, id, data, merge) => setDoc(doc(db, path, id), data, merge ? {merge:true} : {});
   window._fbOnAuth = (cb) => onAuthStateChanged(auth, cb);
 
-  // Dispara o init do app quando auth estiver pronto
+  // Guard: _iniciarApp só pode ser chamado uma vez
+  window._appJaIniciado = false;
+
   window._fbOnAuth(async (user) => {
     if (user) {
+      // Se o app já foi iniciado, ignora re-disparos do onAuthStateChanged
+      if (window._appJaIniciado) return;
+
       try {
-        console.log('✅ UID:', user.uid, '| Email:', user.email);
         const snap = await window._fbGetDoc('licencas', user.uid);
-        console.log('📄 Existe:', snap.exists(), '| Dados:', snap.exists() ? JSON.stringify(snap.data()) : 'nenhum');
         if (snap.exists() && snap.data().ativo === true) {
-          // Licença válida — busca config global (API key da IA)
           window._fbUsuarioAtual = user;
           try {
             const cfgSnap = await window._fbGetDoc('config', 'sistema');
             window._anthropicKey = cfgSnap.exists() ? (cfgSnap.data().anthropicKey || '') : '';
           } catch(e) {
             window._anthropicKey = '';
-            console.warn('Não foi possível carregar config/sistema:', e.message);
           }
           document.getElementById('loginScreen').style.display = 'none';
-          if(document.readyState === 'complete'){ _iniciarApp(); } else { window.addEventListener('load', _iniciarApp); }
+          // Aguarda DOM estar pronto de forma confiável
+          const doInit = () => {
+            if (!window._appJaIniciado) {
+              window._appJaIniciado = true;
+              _iniciarApp();
+            }
+          };
+          if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            doInit();
+          } else {
+            window.addEventListener('DOMContentLoaded', doInit, { once: true });
+            window.addEventListener('load', doInit, { once: true });
+          }
         } else {
-          // Sem licença ou licença inativa
           _mostrarErroLicenca(user);
         }
       } catch(e) {
-        console.error('❌ ERRO:', e.message, e); _mostrarErroLicenca(user, 'Erro: ' + e.message);
+        console.error('❌ ERRO:', e.message, e);
+        _mostrarErroLicenca(user, 'Erro: ' + e.message);
       }
     } else {
-      // Não logado — mostra tela de login
+      // Não logado — mostra login
+      window._appJaIniciado = false;
       document.getElementById('loginScreen').style.display = 'flex';
       document.getElementById('loginLoading').style.display = 'none';
     }
@@ -2817,19 +2831,33 @@ function save(){
   lsSet('entradas',entradas);lsSet('caixas',caixas);lsSet('servicos',servicos)
   lsSet('despesas',despesas);lsSet('fornecedores',fornecedores);lsSet('vendedores',vendedores)
   lsSet('agenda',agenda);lsSet('agendaTipos',agendaTipos)
-  _syncFirestore()
-  renderDashboard();renderClientes();renderProdutos();renderServicos();renderVendas()
-  renderEntradas();renderCaixa();renderDespesas();renderFornecedores();renderVendedores();renderFiado();renderAgenda();atualizarResumo();populateSelects()
+  _syncFirestoreDebounced()
+  // Renderiza só a página visível + dashboard (resumo) + selects
+  const pagAtiva=document.querySelector('.page.active')?.id||''
+  const renderMap={
+    dashboard:renderDashboard,clientes:renderClientes,produtos:renderProdutos,
+    servicos:renderServicos,vendas:renderVendas,entrada:()=>{renderEntradas();populateSelects()},
+    caixa:renderCaixa,despesas:renderDespesas,fornecedores:renderFornecedores,
+    vendedores:renderVendedores,fiado:renderFiado,agenda:renderAgenda,
+    relatorios:renderRelatorio
+  }
+  if(renderMap[pagAtiva]) renderMap[pagAtiva]()
+  // Dashboard sempre atualiza o resumo rápido
+  if(pagAtiva!=='dashboard') atualizarResumo()
+  // Selects só se necessário
+  if(['entrada','vendas'].includes(pagAtiva)) populateSelects()
 }
 
 // ══ SYNC FIRESTORE ══
-// Salva todos os dados no Firestore sob o UID do usuário logado.
-// Executado de forma assíncrona (sem bloquear a UI).
+let _syncTimer=null
+function _syncFirestoreDebounced(){
+  clearTimeout(_syncTimer)
+  _syncTimer=setTimeout(_syncFirestore, 1500)
+}
 function _syncFirestore(){
   if(!window._fbUsuarioAtual)return
   const uid=window._fbUsuarioAtual.uid
   const saleIdCnt=parseInt(localStorage.getItem('saleIdCnt')||'0')
-  // Remove logo do sync (pode ser base64 grande; ultrapassa o limite de 1MB do Firestore)
   const cfgSemLogo={...config,logo:config.logo?'__has_logo__':''}
   const payload={
     clientes,produtos,vendas,entradas,caixas,
@@ -2848,7 +2876,7 @@ function saveConfig(){
   config.estoqueMin=parseInt2(document.getElementById('cfgEstoqueMin').value,3,0)
   config.githubRepo=undefined // campo removido — repo fixo internamente
   lsSet('config',config)
-  _syncFirestore()
+  _syncFirestoreDebounced()
   applyConfig()
   renderStockAlert()
   renderProdutos()
@@ -6707,7 +6735,7 @@ function _processarBackupJson(texto){
       lsSet('entradas',entradas);lsSet('caixas',caixas);lsSet('servicos',servicos)
       lsSet('despesas',despesas);lsSet('fornecedores',fornecedores);lsSet('vendedores',vendedores)
       lsSet('config',config)
-      _syncFirestore() // ← sobe o backup restaurado para o Firestore
+      _syncFirestore() // ← sobe o backup restaurado para o Firestore (imediato, não debounce)
       toast('✅ Backup restaurado com sucesso!');render()
     },'Restaurar backup','Restaurar','btn-warning')
   }catch(e){toast('Arquivo inválido ou corrompido.','error')}
