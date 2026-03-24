@@ -128,12 +128,12 @@ html[data-theme="light"]{
 .theme-toggle{background:none;border:1px solid var(--border2);border-radius:var(--radius);padding:6px 10px;cursor:pointer;font-size:15px;color:var(--text-dim);transition:all .15s;flex-shrink:0}
 .theme-toggle:hover{background:var(--surface2);border-color:var(--accent);color:var(--accent)}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);height:100vh;height:100dvh;overflow:hidden}
 ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#2a2218;border-radius:99px}::-webkit-scrollbar-thumb:hover{background:#3a3020}
 
 /* ── LAYOUT ── */
 :root{--sidebar-w:240px;--sidebar-w-col:60px;--ts:.22s}
-.app{display:flex;height:100vh}
+.app{display:flex;height:100vh;height:100dvh}
 .sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;transition:width var(--ts) cubic-bezier(.4,0,.2,1)}
 .sidebar.collapsed{width:var(--sidebar-w-col)}
 .logo{padding:14px 12px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;min-height:62px;flex-shrink:0;gap:8px;position:relative;}
@@ -173,12 +173,12 @@ body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);height
 .sidebar-footer-brand span{color:var(--accent)}
 .sidebar-footer-sub{font-size:11px;color:var(--text-muted);margin-top:1px}
 .sidebar-footer-copy{font-size:10px;color:var(--text-muted);margin-top:5px;opacity:.6}
-.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
 .topbar{height:62px;display:flex;align-items:center;padding:0 28px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0;position:relative;}
 .topbar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent) 40%,transparent);opacity:.18;pointer-events:none}
 .topbar-title{font-size:15px;font-weight:600}
 .topbar-sub{font-size:12px;color:var(--text-muted);margin-top:2px}
-.content{flex:1;overflow-y:auto;padding:28px}
+.content{flex:1;overflow-y:auto;overflow-x:hidden;padding:28px;min-height:0}
 .page{display:none}
 .page.active{display:block;animation:fadein .2s cubic-bezier(.4,0,.2,1)}
 @keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
@@ -653,22 +653,22 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:30px 0}
 @media(max-width:768px){
   /* ── Sidebar gaveta ── */
   .hamburger{display:flex}
-  .sidebar{position:fixed;left:-290px;top:0;bottom:0;width:272px!important;z-index:1000;transition:left .28s cubic-bezier(.4,0,.2,1);box-shadow:none}
+  .sidebar{position:fixed;left:-290px;top:0;bottom:0;height:100vh;height:100dvh;width:272px!important;z-index:1000;transition:left .28s cubic-bezier(.4,0,.2,1);box-shadow:none}
   .sidebar.mobile-open{left:0!important;box-shadow:8px 0 48px rgba(0,0,0,.6)}
   .sidebar.collapsed,.sidebar.collapsed.mobile-open{width:272px!important}
   .sidebar.collapsed{left:-290px}
   .sidebar.collapsed.mobile-open{left:0!important}
   .sidebar-toggle{display:none!important}
   /* ── Layout principal ── */
-  .main{margin-left:0!important;width:100%!important}
-  .app{flex-direction:column}
+  .app{height:100vh;height:100dvh;flex-direction:row;overflow:hidden}
+  .main{margin-left:0!important;width:100%!important;min-width:0;overflow:hidden}
   /* ── Topbar ── */
   .topbar{padding:0 12px;height:54px;gap:6px}
   .topbar-sub{display:none}
   .topbar-empresa-nome{display:none}
   .global-search-wrap{flex:1;min-width:0}
   /* ── Conteúdo ── */
-  .content{padding:12px 12px 80px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .content{padding:12px 12px 80px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;flex:1;min-height:0}
   /* ── Grids e cards ── */
   .grid-stats{grid-template-columns:1fr 1fr!important;gap:8px}
   .stat-card{padding:14px 12px}
