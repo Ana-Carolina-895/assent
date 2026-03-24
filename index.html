@@ -637,45 +637,70 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:30px 0}
 .mobile-overlay.show{display:block}
 
 @media(max-width:768px){
+  /* ── Sidebar gaveta ── */
   .hamburger{display:flex}
-  .sidebar{position:fixed;left:-288px;top:0;bottom:0;width:272px!important;z-index:1000;transition:left .25s cubic-bezier(.4,0,.2,1)}
-  .sidebar.mobile-open{left:0;box-shadow:8px 0 40px rgba(0,0,0,.5)}
-  .sidebar.collapsed{width:272px!important;left:-288px}
-  .sidebar.collapsed.mobile-open{left:0}
+  .sidebar{position:fixed;left:-290px;top:0;bottom:0;width:272px!important;z-index:1000;transition:left .28s cubic-bezier(.4,0,.2,1);box-shadow:none}
+  .sidebar.mobile-open{left:0!important;box-shadow:8px 0 48px rgba(0,0,0,.6)}
+  .sidebar.collapsed,.sidebar.collapsed.mobile-open{width:272px!important}
+  .sidebar.collapsed{left:-290px}
+  .sidebar.collapsed.mobile-open{left:0!important}
   .sidebar-toggle{display:none!important}
-  .main{margin-left:0!important;width:100%}
-  .topbar{padding:0 14px;height:56px;gap:6px}
+  /* ── Layout principal ── */
+  .main{margin-left:0!important;width:100%!important}
+  .app{flex-direction:column}
+  /* ── Topbar ── */
+  .topbar{padding:0 12px;height:54px;gap:6px}
   .topbar-sub{display:none}
-  .global-search-wrap{flex:1}
   .topbar-empresa-nome{display:none}
-  .content{padding:14px;padding-bottom:calc(70px + env(safe-area-inset-bottom))}
-  .table-wrapper{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  table{min-width:480px;font-size:12px}
-  .form-grid{grid-template-columns:1fr!important}
-  .config-grid{grid-template-columns:1fr!important}
-  .fin-cards{grid-template-columns:1fr 1fr!important}
+  .global-search-wrap{flex:1;min-width:0}
+  /* ── Conteúdo ── */
+  .content{padding:12px 12px 80px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  /* ── Grids e cards ── */
+  .grid-stats{grid-template-columns:1fr 1fr!important;gap:8px}
+  .stat-card{padding:14px 12px}
+  .stat-value{font-size:20px}
+  .ag-resumo{grid-template-columns:1fr!important;gap:8px}
+  .dash-bottom{grid-template-columns:1fr!important}
   .chart-row{grid-template-columns:1fr!important}
   .rank-grid{grid-template-columns:1fr!important}
-  .grid-stats{grid-template-columns:1fr 1fr!important}
-  .dash-filter-bar{gap:5px;flex-wrap:wrap}
-  .dash-vendas-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .dash-vendas-scroll table{min-width:380px;font-size:12px}
-  .filter-btn{padding:5px 9px;font-size:12px}
-  .modal-overlay{align-items:flex-end!important;padding:0}
-  .modal-box{max-width:100%!important;width:100%!important;max-height:92vh;overflow-y:auto;border-radius:16px 16px 0 0!important;margin:0;box-shadow:0 -8px 40px rgba(0,0,0,.4)}
-  .modal-box.edit-size{max-height:96vh}
-  .toolbar{flex-wrap:wrap;gap:8px}
-  .rel-menu-wrap{margin-bottom:8px}
-  .btn{min-height:38px}
-  .form-section{padding:14px}
+  .fin-cards{grid-template-columns:1fr 1fr!important}
   .resumo-box{grid-template-columns:1fr 1fr!important}
-  .td-actions{flex-wrap:wrap;gap:4px}
   .edit-add-row{grid-template-columns:1fr 1fr!important}
+  .form-grid{grid-template-columns:1fr!important}
+  .config-grid{grid-template-columns:1fr!important}
+  /* ── Tabelas ── */
+  .table-wrapper{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--radius)}
+  table{min-width:480px;font-size:12px}
+  .dash-vendas-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .dash-vendas-scroll table{min-width:360px;font-size:12px}
+  /* ── Filtros e toolbar ── */
+  .dash-filter-bar{gap:5px;flex-wrap:wrap}
+  .filter-btn{padding:5px 10px;font-size:11px}
+  .toolbar{flex-wrap:wrap;gap:6px}
+  .rel-menu-wrap{margin-bottom:8px}
+  .ag-toolbar{flex-direction:column;align-items:flex-start;gap:8px}
+  /* ── Modais — sheet bottom ── */
+  .modal-overlay{align-items:flex-end!important;padding:0!important}
+  .modal-box{max-width:100%!important;width:100%!important;max-height:93vh;overflow-y:auto;border-radius:18px 18px 0 0!important;margin:0!important;padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+  /* ── Agenda ── */
+  .ag-cal-cell{min-height:52px;padding:4px}
+  .ag-cal-ev{font-size:9px}
+  .ag-card{flex-direction:column;gap:8px}
+  .ag-card-left{flex-direction:row;align-items:center;min-width:unset}
+  .ag-card-actions{flex-direction:row;justify-content:flex-end}
+  /* ── Misc ── */
+  .btn{min-height:40px}
+  .form-section{padding:12px}
+  .td-actions{flex-wrap:wrap;gap:4px}
+  .sidebar-footer-inner{display:none}
 }
-@media(max-width:400px){
+@media(max-width:440px){
   .grid-stats{grid-template-columns:1fr!important}
   .fin-cards{grid-template-columns:1fr!important}
-  .content{padding:10px}
+  .resumo-box{grid-template-columns:1fr!important}
+  .content{padding:10px 10px 80px}
+  .topbar{padding:0 10px}
+  .stat-value{font-size:18px}
 }
 
 @media print{body{background:#fff!important;color:#000!important;overflow:auto!important;height:auto!important}.app,.sidebar,.topbar,.nav,.toast-container,.modal-overlay{display:none!important}@page{margin:20mm}}
@@ -4621,11 +4646,19 @@ function toggleSidebar(){
 // Restaura estado do sidebar
 ;(function(){
   try{
-    if(localStorage.getItem('assent_sidebar_collapsed')==='1'){
+    const isMobile=window.innerWidth<=768
+    if(!isMobile && localStorage.getItem('assent_sidebar_collapsed')==='1'){
       const sb=document.getElementById('sidebar')
       sb.classList.add('collapsed')
       const btn=sb.querySelector('.sidebar-toggle')
       if(btn){btn.textContent='▶';btn.title='Expandir menu'}
+    }
+    // Garante que no mobile o sidebar começa fechado (sem mobile-open)
+    if(isMobile){
+      const sb=document.getElementById('sidebar')
+      sb.classList.remove('mobile-open')
+      const ov=document.getElementById('mobileOverlay')
+      if(ov)ov.classList.remove('show')
     }
   }catch(e){}
 })()
