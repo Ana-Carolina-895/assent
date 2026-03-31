@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=1280">
 <meta name="theme-color" content="#0f1117">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -651,7 +651,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:30px 0}
 .mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:999;touch-action:none}
 .mobile-overlay.show{display:block}
 
-@media (max-width:768px){
+@media(max-width:768px){
   /* Hamburger visível */
   .hamburger{display:flex}
   body{height:100%;overflow:hidden}
@@ -715,7 +715,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:30px 0}
   .ag-toolbar{flex-direction:column;align-items:flex-start;gap:8px}
   .rel-menu-wrap{margin-bottom:8px}
 }
-@media (max-width:420px){
+@media(max-width:420px){
   .grid-stats,.fin-cards,.resumo-box,.ag-resumo{grid-template-columns:1fr!important}
   .content{padding:10px 10px 80px}
 }
@@ -1035,7 +1035,7 @@ thead th{color:var(--text-dim)!important;font-weight:700}
   position:relative;
   overflow:hidden;
 }
-@media (min-width:860px){.login-panel-brand{display:flex}}
+@media(min-width:860px){.login-panel-brand{display:flex}}
 .login-panel-brand::before{
   content:'';position:absolute;top:0;left:0;right:0;height:1px;
   background:linear-gradient(90deg,transparent,#C9A84C 50%,transparent);
@@ -1830,12 +1830,43 @@ thead th{color:var(--text-dim)!important;font-weight:700}
                 <option value="Boleto">📄 Boleto</option>
                 <option value="Fiado">📒 Fiado (a receber)</option>
                 <option value="Parcelado">📅 Parcelado</option>
+                <option value="Sinal">🤝 Sinal + Restante a receber</option>
                 <option value="Outro">🔄 Outro</option>
               </select>
             </div>
             <div class="form-group" id="fgFiadoVenc" style="display:none">
               <label>Vencimento do fiado <span style="color:var(--red)">*</span></label>
               <input id="vendaFiadoVenc" type="date">
+            </div>
+            <!-- Campos de Sinal -->
+            <div id="fgSinal" style="display:none;background:var(--surface3);border-radius:var(--radius);padding:14px;margin-top:4px;display:none">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin-bottom:10px">🤝 Sinal (entrada)</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <div class="form-group">
+                  <label>Valor do sinal <span style="color:var(--red)">*</span></label>
+                  <input type="number" id="vendaSinalValor" placeholder="0,00" min="0" step="0.01"
+                    oninput="atualizarRestanteSinal()">
+                </div>
+                <div class="form-group">
+                  <label>Pagamento do sinal</label>
+                  <select id="vendaSinalForma">
+                    <option value="Dinheiro">💵 Dinheiro</option>
+                    <option value="Pix">📲 Pix</option>
+                    <option value="Cartão Débito">💳 Cartão Débito</option>
+                    <option value="Cartão Crédito">💳 Cartão Crédito</option>
+                    <option value="Boleto">📄 Boleto</option>
+                    <option value="Outro">🔄 Outro</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Vencimento do restante <span style="color:var(--red)">*</span></label>
+                  <input type="date" id="vendaSinalVenc">
+                </div>
+                <div class="form-group">
+                  <label>Restante a receber</label>
+                  <div id="vendaSinalRestante" style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:var(--accent);padding:8px 0">R$ 0,00</div>
+                </div>
+              </div>
             </div>
           </div>
           <button class="btn btn-primary" onclick="addItemVenda()">＋ Adicionar item</button>
@@ -2672,7 +2703,8 @@ let _vendaAtual=null
 function openModalVenda(v){
   _vendaAtual=v
   document.getElementById('mvId').textContent=v.id||'—'
-  document.getElementById('mvMeta').innerHTML='Cliente: <b>'+escHtml(v.cliente||'Não informado')+'</b><br>Data: '+fmtData(v.data)+(v.formaPagamento?'<br>Pagamento: <b>'+escHtml(v.formaPagamento)+'</b>':'')
+  const sinalInfo=v.sinal?'<br>💰 Sinal pago: <b>'+brl(v.sinal.valor)+'</b> via '+escHtml(v.sinal.forma)+'<br>🔖 Restante: <b>'+brl(v.sinal.restante)+'</b> — vence '+fmtData(v.sinal.venc):''
+  document.getElementById('mvMeta').innerHTML='Cliente: <b>'+escHtml(v.cliente||'Não informado')+'</b><br>Data: '+fmtData(v.data)+(v.formaPagamento?'<br>Pagamento: <b>'+escHtml(v.formaPagamento)+'</b>':'')+sinalInfo
   const obsWrap=document.getElementById('mvObsWrap')
   if(v.obs){obsWrap.style.display='block';document.getElementById('mvObs').textContent=v.obs}else obsWrap.style.display='none'
   let sb=0,sd=0,sc=0
@@ -3501,6 +3533,9 @@ function atualizarResumo(){
   document.getElementById('rSubtotal').textContent=brl(sb);document.getElementById('rDesconto').textContent=brl(sd)
   document.getElementById('rCusto').textContent=brl(sc);document.getElementById('rTotal').textContent=brl(total)
   document.getElementById('rLucro').textContent=brl(total-sc)
+  // Atualiza restante do sinal se visível
+  const fp=document.getElementById('vendaFormaPgto')?.value
+  if(fp==='Sinal') atualizarRestanteSinal()
 }
 function finalizarVenda(){
   if(!itensVenda.length){toast('Adicione ao menos um item.','warning');return}
@@ -3517,11 +3552,30 @@ function finalizarVenda(){
   const obsNova=document.getElementById('vendaNovaObs').value.trim()
   const vendedor=document.getElementById('vendaVendedor')?.value||''
   const isFiado=fp==='Fiado'||fp==='Parcelado'
-  vendas.push({id:nextSaleId(),cliente:getVendaClienteNome(),itens:[...itensVenda],total,data:document.getElementById('vendaData').value||hoje(),obs:obsNova,formaPagamento:fp,vendedor,fiado:isFiado,fiadoVenc:isFiado?fiadoVenc:'',fiadoRecebido:false,fiadoDataRecebimento:null})
+  const isSinal=fp==='Sinal'
+  // Campos de sinal
+  const sinalValor=isSinal?(parseFloat(document.getElementById('vendaSinalValor')?.value||0)||0):0
+  const sinalForma=isSinal?(document.getElementById('vendaSinalForma')?.value||''):''
+  const sinalVenc=isSinal?(document.getElementById('vendaSinalVenc')?.value||''):''
+  const sinalRestante=isSinal?Math.max(0,total-sinalValor):0
+  if(isSinal&&!sinalVenc){toast('Informe o vencimento do restante.','error');return}
+  if(isSinal&&sinalValor<=0){toast('Informe o valor do sinal.','error');return}
+  if(isSinal&&sinalValor>=total){toast('O sinal não pode ser igual ou maior que o total.','error');return}
+  vendas.push({id:nextSaleId(),cliente:getVendaClienteNome(),itens:[...itensVenda],total,data:document.getElementById('vendaData').value||hoje(),obs:obsNova,
+    formaPagamento:isSinal?'Sinal ('+brl(sinalValor)+' via '+sinalForma+')':fp,
+    vendedor,
+    fiado:isFiado||isSinal,
+    fiadoVenc:isFiado?fiadoVenc:isSinal?sinalVenc:'',
+    fiadoRecebido:false,fiadoDataRecebimento:null,
+    sinal:isSinal?{valor:sinalValor,forma:sinalForma,restante:sinalRestante,venc:sinalVenc}:null
+  })
   itensVenda=[];document.getElementById('vendaData').value='';document.getElementById('vendaFormaPgto').value='';document.getElementById('vendaNovaObs').value=''
   const vvEl=document.getElementById('vendaVendedor');if(vvEl)vvEl.value=''
   const fvEl=document.getElementById('vendaFiadoVenc');if(fvEl)fvEl.value=''
   const fg=document.getElementById('fgFiadoVenc');if(fg)fg.style.display='none'
+  const svEl=document.getElementById('vendaSinalValor');if(svEl)svEl.value=''
+  const sfEl=document.getElementById('vendaSinalVenc');if(sfEl)sfEl.value=''
+  const fsEl=document.getElementById('fgSinal');if(fsEl)fsEl.style.display='none'
   resetVendaCliente()
   renderItens();atualizarResumo()
   toast('✅ Venda de '+brl(total)+' finalizada com sucesso!')
@@ -5909,7 +5963,19 @@ let _fiadoFiltro='pendentes'
 function onFormaPgtoChange(){
   const v=document.getElementById('vendaFormaPgto').value
   const fg=document.getElementById('fgFiadoVenc')
+  const fs=document.getElementById('fgSinal')
   if(fg) fg.style.display=(v==='Fiado'||v==='Parcelado')?'block':'none'
+  if(fs) fs.style.display=v==='Sinal'?'block':'none'
+  if(v==='Sinal') atualizarRestanteSinal()
+}
+function atualizarRestanteSinal(){
+  const sb=itensVenda.reduce((t,it)=>t+it.preco*it.qtd,0)
+  const sd=itensVenda.reduce((t,it)=>t+it.preco*it.qtd*(clamp(it.desconto)/100),0)
+  const total=sb-sd
+  const sinal=parseFloat(document.getElementById('vendaSinalValor')?.value||0)||0
+  const restante=Math.max(0,total-sinal)
+  const el=document.getElementById('vendaSinalRestante')
+  if(el) el.textContent=brl(restante)
 }
 
 function setFiadoFiltro(f,btn){
