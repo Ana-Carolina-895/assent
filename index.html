@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=1280">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0f1117">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -134,7 +134,7 @@ body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);height
 /* ── LAYOUT ── */
 :root{--sidebar-w:240px;--sidebar-w-col:60px;--ts:.22s}
 .app{display:none;height:100vh}.app--visible{display:flex!important}
-.sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;transition:width var(--ts) cubic-bezier(.4,0,.2,1)}
+.sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;transition:width var(--ts) cubic-bezier(.4,0,.2,1);min-height:0}
 .sidebar.collapsed{width:var(--sidebar-w-col)}
 .logo{padding:14px 12px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;min-height:62px;flex-shrink:0;gap:8px;position:relative;}
 .logo::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--accent),transparent);opacity:.25;pointer-events:none}
@@ -151,7 +151,7 @@ body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);height
 .sidebar-toggle{background:none;border:1px solid var(--border2);border-radius:7px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);font-size:12px;flex-shrink:0;transition:all .15s}
 .sidebar-toggle:hover{background:var(--surface2);color:var(--accent);border-color:var(--accent)}
 .sidebar.collapsed .sidebar-toggle{margin:0 auto}
-.nav{flex:1;padding:8px;display:flex;flex-direction:column;gap:1px;overflow-y:auto;overflow-x:hidden}
+.nav{flex:1;padding:8px;display:flex;flex-direction:column;gap:1px;overflow-y:auto;overflow-x:hidden;min-height:0}
 .nav-label{font-size:9px;font-weight:700;letter-spacing:.14em;color:var(--text-muted);text-transform:uppercase;padding:10px 6px 3px;white-space:nowrap;overflow:hidden;transition:opacity var(--ts),max-height var(--ts),padding var(--ts)}
 .sidebar.collapsed .nav-label{opacity:0;max-height:0;padding:0;pointer-events:none}
 .nav-divider{height:1px;background:var(--border);margin:4px 0;flex-shrink:0}
@@ -644,6 +644,80 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:30px 0}
 
 
 
+
+/* ── MOBILE DRAWER ── */
+.hamburger{display:none;background:none;border:1px solid var(--border2);border-radius:7px;width:36px;height:36px;align-items:center;justify-content:center;cursor:pointer;color:var(--text-dim);font-size:18px;flex-shrink:0;margin-right:6px}
+.hamburger:hover{background:var(--surface2);color:var(--accent)}
+.mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:999;touch-action:none}
+.mobile-overlay.show{display:block}
+
+@media(max-width:768px){
+  /* Hamburger visível */
+  .hamburger{display:flex}
+
+  /* App ocupa tela toda via fixed — imune ao 100vh do Chrome */
+  .app{position:fixed!important;inset:0!important;height:auto!important;flex-direction:row}
+
+  /* Sidebar como gaveta off-canvas */
+  .sidebar{
+    position:fixed!important;
+    top:0;bottom:0;left:-280px;
+    width:260px!important;
+    height:100%!important;
+    z-index:1000;
+    transition:left .25s ease;
+    background:var(--surface)!important;
+  }
+  .sidebar.open{left:0}
+  .sidebar.collapsed{width:260px!important;left:-280px}
+  .sidebar.collapsed.open{left:0}
+  .sidebar-toggle{display:none!important}
+
+  /* Main ocupa tudo */
+  .main{flex:1;width:100%;overflow:hidden;display:flex;flex-direction:column}
+  .topbar{padding:0 12px;height:52px;flex-shrink:0}
+  .topbar-sub,.topbar-empresa-nome{display:none}
+
+  /* Conteúdo com scroll */
+  .content{
+    flex:1;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+    padding:14px 12px 80px;
+    min-height:0;
+  }
+
+  /* Modais como bottom sheet */
+  .modal-overlay{align-items:flex-end!important;padding:0!important}
+  .modal-box{
+    max-width:100%!important;width:100%!important;
+    max-height:90vh;overflow-y:auto;
+    border-radius:18px 18px 0 0!important;
+    margin:0!important;
+  }
+
+  /* Grids */
+  .grid-stats{grid-template-columns:1fr 1fr!important;gap:8px}
+  .ag-resumo{grid-template-columns:1fr 1fr!important;gap:8px}
+  .dash-bottom,.chart-row,.rank-grid,.form-grid,.config-grid{grid-template-columns:1fr!important}
+  .fin-cards,.resumo-box,.edit-add-row{grid-template-columns:1fr 1fr!important}
+
+  /* Tabelas */
+  .table-wrapper,.dash-vendas-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{min-width:480px;font-size:12px}
+
+  /* Misc */
+  .toolbar{flex-wrap:wrap;gap:6px}
+  .filter-btn{padding:5px 10px;font-size:11px}
+  .btn{min-height:40px}
+  .ag-toolbar{flex-direction:column;align-items:flex-start;gap:8px}
+  .rel-menu-wrap{margin-bottom:8px}
+}
+@media(max-width:420px){
+  .grid-stats,.fin-cards,.resumo-box,.ag-resumo{grid-template-columns:1fr!important}
+  .content{padding:10px 10px 80px}
+}
 @media print{body{background:#fff!important;color:#000!important;overflow:auto!important;height:auto!important}.app,.sidebar,.topbar,.nav,.toast-container,.modal-overlay{display:none!important}@page{margin:20mm}}
 
 /* ══ PROFUNDIDADE & ANIMAÇÕES PREMIUM ══ */
@@ -1292,9 +1366,11 @@ thead th{color:var(--text-dim)!important;font-weight:700}
   </div>
 
   <!-- Mobile overlay -->
+  <div class="mobile-overlay" id="mobileOverlay" onclick="closeMobileSidebar()"></div>
 
   <div class="main">
     <div class="topbar">
+      <button class="hamburger" onclick="toggleMobileSidebar()" aria-label="Menu">☰</button>
       <div>
         <div class="topbar-title" id="topbarTitle">Dashboard</div>
         <div class="topbar-sub" id="topbarSub">Visão geral do sistema</div>
@@ -6660,8 +6736,16 @@ function _processarBackupJson(texto){
 }
 
 /* ═══ ELECTRON BRIDGE ═══ */
-function toggleMobileSidebar(){}
-function closeMobileSidebar(){}
+function toggleMobileSidebar(){
+  const sb=document.getElementById('sidebar')
+  const ov=document.getElementById('mobileOverlay')
+  const isOpen=sb.classList.toggle('open')
+  if(ov)ov.classList.toggle('show',isOpen)
+}
+function closeMobileSidebar(){
+  document.getElementById('sidebar')?.classList.remove('open')
+  document.getElementById('mobileOverlay')?.classList.remove('show')
+}
 // Fecha sidebar ao navegar no mobile
 const _origShowPage=typeof showPage==='function'?showPage:null
 ;(()=>{
