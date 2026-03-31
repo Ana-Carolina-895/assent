@@ -3641,15 +3641,18 @@ function imprimirVenda(){
     (v.obs?'<div style="background:#f9f9f9;border:1px solid #ddd;border-radius:6px;padding:10px;margin-bottom:14px;font-size:12px">'+escHtml(v.obs)+'</div>':'')+
     '<table><thead><tr><th>Produto</th><th style="text-align:center">Qtd</th><th style="text-align:right">Preço</th><th style="text-align:right">Custo</th><th style="text-align:center">Desc.</th><th style="text-align:right">Total</th></tr></thead><tbody>'+linhas+'</tbody></table>'+
     '<div class="totals"><div class="tot-item"><div class="tot-label">Subtotal</div><div class="tot-value">'+brl(sb)+'</div></div><div class="tot-item"><div class="tot-label">Descontos</div><div class="tot-value">'+brl(sd)+'</div></div><div class="tot-item"><div class="tot-label">Total</div><div class="tot-value" style="color:#16a34a">'+brl(total)+'</div></div><div class="tot-item"><div class="tot-label">Lucro est.</div><div class="tot-value" style="color:#4f46e5">'+brl(total-sc)+'</div></div></div>'+
-    '<div class="footer">ASSENT Sistema v1.2</div><script>window.onload=function(){window.print();window.onafterprint=function(){window.close()}}<\/script><script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-<script>
-    eruda.init({
-        defaults: {
-            displaySize: 50,
-            transparency: 0.9,
-            theme: 'Dark'
-        }
-    });
+    '<div class="footer">ASSENT Sistema v1.2</div><script>window.onload=function(){window.print();window.onafterprint=function(){window.close()}}<\/script><script src="https://cdn.jsdelivr.net/npm/eruda"></script><script>
+  (function () {
+    var script = document.createElement('script');
+    script.src = "https://cdn.jsdelivr.net/npm/eruda";
+    script.async = true; // Isso impede que ele trave o carregamento do seu site
+    script.onload = function () {
+      eruda.init({
+        tool: ['console', 'elements', 'network', 'resource'] // Carrega apenas o essencial
+      });
+    };
+    document.body.appendChild(script);
+  })();
 </script></body></html>'
   const w=window.open('','_blank','width=900,height=700');if(!w){toast('Pop-up bloqueado.','warning');return}
   w.document.write(html);w.document.close()
