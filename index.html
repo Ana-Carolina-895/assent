@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ASSENT">
 <meta name="description" content="Sistema de gestão empresarial offline">
-<!-- manifest.json não disponível neste servidor -->
+<!-- manifest desabilitado -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,8 94,80 6,80' fill='none' stroke='%23C9A84C' stroke-width='10' stroke-linejoin='round'/%3E%3Cline x1='50' y1='8' x2='50' y2='80' stroke='%23C9A84C' stroke-width='5' opacity='.5'/%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>ASSENT Sistema v1.2</title>
@@ -651,28 +651,51 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:30px 0}
 .mobile-overlay.show{display:block}
 
 @media(max-width:768px){
-  /* ── Sidebar gaveta ── */
+  /* Desabilita todas animações e transições no mobile */
+  *{transition:none!important;animation:none!important}
+  .page.active{display:block!important;opacity:1!important}
+
+  /* Sidebar gaveta */
   .hamburger{display:flex}
-  .sidebar{position:fixed;left:-290px;top:0;bottom:0;width:272px!important;z-index:1000;background:var(--surface);transition:left .28s cubic-bezier(.4,0,.2,1);box-shadow:none;transform:translateZ(0)}
-  .sidebar.mobile-open{left:0!important;box-shadow:8px 0 48px rgba(0,0,0,.6)}
-  .sidebar.collapsed,.sidebar.collapsed.mobile-open{width:272px!important}
-  .sidebar.collapsed{left:-290px}
+  .sidebar{
+    position:fixed;left:-290px;top:0;bottom:0;
+    width:272px!important;z-index:1000;
+    background:var(--surface)!important;
+    border-right:1px solid var(--border);
+    display:flex;flex-direction:column;
+    overflow:hidden;
+  }
+  .sidebar.mobile-open{left:0!important;box-shadow:8px 0 48px rgba(0,0,0,.6)!important}
+  .sidebar.collapsed{left:-290px!important;width:272px!important}
   .sidebar.collapsed.mobile-open{left:0!important}
   .sidebar-toggle{display:none!important}
-  /* ── Layout principal ── */
-  .app{position:fixed;inset:0;flex-direction:row;overflow:hidden}
-  .main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden;min-height:0}
-  /* ── Topbar ── */
-  .topbar{padding:0 12px;height:54px;gap:6px;flex-shrink:0}
+
+  /* Layout */
+  .app{position:fixed!important;top:0!important;left:0!important;right:0!important;bottom:0!important;display:flex;flex-direction:row;overflow:hidden}
+  .main{flex:1!important;display:flex!important;flex-direction:column!important;min-width:0;overflow:hidden;min-height:0}
+  .topbar{flex-shrink:0;padding:0 12px;height:54px;gap:6px}
   .topbar-sub{display:none}
   .topbar-empresa-nome{display:none}
   .global-search-wrap{flex:1;min-width:0}
-  /* ── Conteúdo ── */
-  .content{flex:1;overflow-y:scroll;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:12px 12px 80px;min-height:0;overscroll-behavior:contain;transform:translateZ(0)}
-  /* ── Nav items — força paint ── */
-  .nav{transform:translateZ(0);overflow-y:scroll;-webkit-overflow-scrolling:touch}
-  .nav-btn{transform:translateZ(0)}
-  /* ── Grids e cards ── */
+  .content{
+    flex:1!important;
+    overflow-y:scroll!important;
+    overflow-x:hidden!important;
+    padding:12px 12px 80px!important;
+    min-height:0!important;
+    display:block!important;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+  }
+
+  /* Nav */
+  .nav{overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+  .nav-btn,.nav-label,.nav-divider{opacity:1!important;visibility:visible!important;display:flex}
+  .nav-label{display:block}
+  .nav-divider{display:block}
+  .nav-btn .label{opacity:1!important;max-width:none!important}
+
+  /* Grids */
   .grid-stats{grid-template-columns:1fr 1fr!important;gap:8px}
   .stat-card{padding:14px 12px}
   .stat-value{font-size:20px}
@@ -685,27 +708,25 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:30px 0}
   .edit-add-row{grid-template-columns:1fr 1fr!important}
   .form-grid{grid-template-columns:1fr!important}
   .config-grid{grid-template-columns:1fr!important}
-  /* ── Tabelas ── */
+
+  /* Tabelas */
   .table-wrapper{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--radius)}
   table{min-width:480px;font-size:12px}
   .dash-vendas-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
   .dash-vendas-scroll table{min-width:360px;font-size:12px}
-  /* ── Filtros e toolbar ── */
+
+  /* Filtros */
   .dash-filter-bar{gap:5px;flex-wrap:wrap}
   .filter-btn{padding:5px 10px;font-size:11px}
   .toolbar{flex-wrap:wrap;gap:6px}
   .rel-menu-wrap{margin-bottom:8px}
   .ag-toolbar{flex-direction:column;align-items:flex-start;gap:8px}
-  /* ── Modais — sheet bottom ── */
+
+  /* Modais */
   .modal-overlay{align-items:flex-end!important;padding:0!important}
   .modal-box{max-width:100%!important;width:100%!important;max-height:93vh;overflow-y:auto;border-radius:18px 18px 0 0!important;margin:0!important;padding-bottom:calc(16px + env(safe-area-inset-bottom))}
-  /* ── Agenda ── */
-  .ag-cal-cell{min-height:52px;padding:4px}
-  .ag-cal-ev{font-size:9px}
-  .ag-card{flex-direction:column;gap:8px}
-  .ag-card-left{flex-direction:row;align-items:center;min-width:unset}
-  .ag-card-actions{flex-direction:row;justify-content:flex-end}
-  /* ── Misc ── */
+
+  /* Misc */
   .btn{min-height:40px}
   .form-section{padding:12px}
   .td-actions{flex-wrap:wrap;gap:4px}
@@ -6767,10 +6788,8 @@ const _origShowPage=typeof showPage==='function'?showPage:null
 
 /* ═══ SERVICE WORKER ═══ */
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.getRegistrations().then(regs=>{
-    regs.forEach(r=>r.unregister())
-  })
-  if(window.caches){caches.keys().then(keys=>keys.forEach(k=>caches.delete(k)))}
+  navigator.serviceWorker.getRegistrations().then(regs=>regs.forEach(r=>r.unregister()))
+  if(window.caches)caches.keys().then(keys=>keys.forEach(k=>caches.delete(k)))
 }
 
 /* ══ ASSISTENTE IA ══ */
