@@ -701,6 +701,21 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:30px 0}
   .form-section{padding:12px}
   .td-actions{flex-wrap:wrap;gap:4px}
   .sidebar-footer-inner{display:none}
+
+  /* ── FIX MOBILE: Remove compositing de scroll que causa flickering nos cards ── */
+  .content{-webkit-overflow-scrolling:auto!important}
+
+  /* ── FIX MOBILE: Força sidebar no próprio layer GPU acima do conteúdo ── */
+  .sidebar{-webkit-transform:translateZ(0);transform:translateZ(0);isolation:isolate}
+
+  /* ── FIX MOBILE: Desativa transforms nos cards — causam conflito de layers com o scroll ── */
+  .stat-card,.fin-card,.chart-panel,.rank-panel,.dash-panel,
+  .form-section,.table-wrapper,.config-section,.met-card{
+    transform:none!important;
+    transition:border-color .2s,box-shadow .2s!important;
+    will-change:auto!important;
+  }
+  .stat-card:hover,.fin-card:hover{transform:none!important}
 }
 @media(max-width:440px){
   .grid-stats{grid-template-columns:1fr!important}
