@@ -129,12 +129,12 @@ html[data-theme="light"]{
 .theme-toggle:hover{background:var(--surface2);border-color:var(--accent);color:var(--accent)}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);margin:0;padding:0}
-html{height:100%;background:var(--bg)}
 ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#2a2218;border-radius:99px}::-webkit-scrollbar-thumb:hover{background:#3a3020}
 
 /* ── LAYOUT ── */
 :root{--sidebar-w:240px;--sidebar-w-col:60px;--ts:.22s}
-.app{display:flex;position:fixed;inset:0;overflow:hidden}
+.app{display:none;position:fixed;inset:0;overflow:hidden;flex-direction:row}
+.app.visible{display:flex}
 .sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;transition:width var(--ts) cubic-bezier(.4,0,.2,1)}
 .sidebar.collapsed{width:var(--sidebar-w-col)}
 .logo{padding:14px 12px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;min-height:62px;flex-shrink:0;gap:8px;position:relative;}
@@ -661,7 +661,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:30px 0}
   .sidebar.collapsed.mobile-open{left:0!important}
   .sidebar-toggle{display:none!important}
   /* ── Layout principal ── */
-  .app{flex-direction:row}
+  .app.visible{display:flex}
   .main{margin-left:0!important;width:100%!important;min-width:0;overflow:hidden}
   /* ── Topbar ── */
   .topbar{padding:0 12px;height:54px;gap:6px}
@@ -7428,12 +7428,12 @@ async function _iniciarApp(){
   }
 
   document.getElementById('tabWarning').style.display=''
-  document.querySelector('.app').style.display='flex'
+  document.querySelector('.app').classList.add('visible')
   render()
 }
 
 // Esconde o app até auth confirmar
-document.querySelector('.app').style.display='none'
+document.querySelector('.app').classList.remove('visible')
 document.getElementById('tabWarning').style.display='none'
 </script>
 
@@ -7672,32 +7672,5 @@ document.getElementById('tabWarning').style.display='none'
     </div>
   </div>
 </div>
-<!-- DEBUG -->
-<div id="_dbg" style="position:fixed;bottom:0;left:0;right:0;max-height:160px;overflow-y:auto;background:rgba(0,0,0,.93);color:#0f0;font-size:10px;font-family:monospace;padding:6px 8px;z-index:999999;border-top:2px solid #0f0;pointer-events:none"></div>
-<script>
-(function(){
-  const box=document.getElementById('_dbg')
-  function log(msg,c){const t=new Date().toISOString().substr(11,12);const d=document.createElement('div');d.style.color=c||'#0f0';d.textContent=t+' '+msg;box.appendChild(d);box.scrollTop=box.scrollHeight}
-  window.addEventListener('error',e=>log('❌ '+e.message+' :'+e.lineno,'#f55'))
-  window.addEventListener('unhandledrejection',e=>log('❌ '+( e.reason?.message||e.reason),'#f55'))
-  window.addEventListener('resize',()=>log('📐 '+window.innerWidth+'x'+window.innerHeight,'#88f'))
-  document.addEventListener('visibilitychange',()=>log('👁 '+document.visibilityState,'#ff0'))
-  function watch(id){const el=document.getElementById(id);if(!el){log('⚠ não achou: '+id,'#f80');return}new MutationObserver(ms=>ms.forEach(m=>{if(m.attributeName==='style')log('🔄 '+id+'="'+el.style.display+'"','#ffa')})).observe(el,{attributes:true,attributeFilter:['style']});log('👀 '+id)}
-  document.addEventListener('DOMContentLoaded',()=>{
-    watch('loginScreen');watch('loginLoading')
-    const app=document.querySelector('.app')
-    if(app)log('📦 app: '+app.style.display+' — '+getComputedStyle(app).height)
-    log('✅ DOM '+window.innerWidth+'x'+window.innerHeight)
-  })
-  setTimeout(()=>{
-    const app=document.querySelector('.app')
-    const content=document.querySelector('.content')
-    if(app)log('📦 app computed h: '+getComputedStyle(app).height,'#aff')
-    if(content)log('📄 content computed h: '+getComputedStyle(content).height,'#aff')
-  },2000)
-  log('🚀 '+navigator.userAgent.substr(0,70))
-  window._log=log
-})()
-</script>
 </body>
 </html>
