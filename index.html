@@ -9,9 +9,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ASSENT">
 <meta name="description" content="Sistema de gestão empresarial offline">
-<link rel="manifest" href="manifest.json">
+<!-- manifest.json não disponível neste servidor -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,8 94,80 6,80' fill='none' stroke='%23C9A84C' stroke-width='10' stroke-linejoin='round'/%3E%3Cline x1='50' y1='8' x2='50' y2='80' stroke='%23C9A84C' stroke-width='5' opacity='.5'/%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<title>ASSENT Sistema v4.6</title>
+<title>ASSENT Sistema v1.2</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
 <!-- Firebase SDKs -->
 <script type="module">
@@ -45,34 +46,48 @@
   window._fbSetDoc = (path, id, data, merge) => setDoc(doc(db, path, id), data, merge ? {merge:true} : {});
   window._fbOnAuth = (cb) => onAuthStateChanged(auth, cb);
 
-  // Dispara o init do app quando auth estiver pronto
+  // Guard: _iniciarApp só pode ser chamado uma vez
+  window._appJaIniciado = false;
+
   window._fbOnAuth(async (user) => {
     if (user) {
+      // Se o app já foi iniciado, ignora re-disparos do onAuthStateChanged
+      if (window._appJaIniciado) return;
+
       try {
-        console.log('✅ UID:', user.uid, '| Email:', user.email);
         const snap = await window._fbGetDoc('licencas', user.uid);
-        console.log('📄 Existe:', snap.exists(), '| Dados:', snap.exists() ? JSON.stringify(snap.data()) : 'nenhum');
         if (snap.exists() && snap.data().ativo === true) {
-          // Licença válida — busca config global (API key da IA)
           window._fbUsuarioAtual = user;
           try {
             const cfgSnap = await window._fbGetDoc('config', 'sistema');
             window._anthropicKey = cfgSnap.exists() ? (cfgSnap.data().anthropicKey || '') : '';
           } catch(e) {
             window._anthropicKey = '';
-            console.warn('Não foi possível carregar config/sistema:', e.message);
           }
           document.getElementById('loginScreen').style.display = 'none';
-          if(document.readyState === 'complete'){ _iniciarApp(); } else { window.addEventListener('load', _iniciarApp); }
+          // Aguarda DOM estar pronto de forma confiável
+          const doInit = () => {
+            if (!window._appJaIniciado) {
+              window._appJaIniciado = true;
+              _iniciarApp();
+            }
+          };
+          if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            doInit();
+          } else {
+            window.addEventListener('DOMContentLoaded', doInit, { once: true });
+            window.addEventListener('load', doInit, { once: true });
+          }
         } else {
-          // Sem licença ou licença inativa
           _mostrarErroLicenca(user);
         }
       } catch(e) {
-        console.error('❌ ERRO:', e.message, e); _mostrarErroLicenca(user, 'Erro: ' + e.message);
+        console.error('❌ ERRO:', e.message, e);
+        _mostrarErroLicenca(user, 'Erro: ' + e.message);
       }
     } else {
-      // Não logado — mostra tela de login
+      // Não logado — mostra login
+      window._appJaIniciado = false;
       document.getElementById('loginScreen').style.display = 'flex';
       document.getElementById('loginLoading').style.display = 'none';
     }
@@ -113,12 +128,12 @@ html[data-theme="light"]{
 .theme-toggle{background:none;border:1px solid var(--border2);border-radius:var(--radius);padding:6px 10px;cursor:pointer;font-size:15px;color:var(--text-dim);transition:all .15s;flex-shrink:0}
 .theme-toggle:hover{background:var(--surface2);border-color:var(--accent);color:var(--accent)}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);height:100vh;height:100dvh;overflow:hidden}
 ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#2a2218;border-radius:99px}::-webkit-scrollbar-thumb:hover{background:#3a3020}
 
 /* ── LAYOUT ── */
 :root{--sidebar-w:240px;--sidebar-w-col:60px;--ts:.22s}
-.app{display:flex;height:100vh}
+.app{display:flex;height:100vh;height:100dvh}
 .sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;transition:width var(--ts) cubic-bezier(.4,0,.2,1)}
 .sidebar.collapsed{width:var(--sidebar-w-col)}
 .logo{padding:14px 12px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;min-height:62px;flex-shrink:0;gap:8px;position:relative;}
@@ -158,12 +173,12 @@ body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);height
 .sidebar-footer-brand span{color:var(--accent)}
 .sidebar-footer-sub{font-size:11px;color:var(--text-muted);margin-top:1px}
 .sidebar-footer-copy{font-size:10px;color:var(--text-muted);margin-top:5px;opacity:.6}
-.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
 .topbar{height:62px;display:flex;align-items:center;padding:0 28px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0;position:relative;}
 .topbar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent) 40%,transparent);opacity:.18;pointer-events:none}
 .topbar-title{font-size:15px;font-weight:600}
 .topbar-sub{font-size:12px;color:var(--text-muted);margin-top:2px}
-.content{flex:1;overflow-y:auto;padding:28px}
+.content{flex:1;overflow-y:auto;overflow-x:hidden;padding:28px;min-height:0}
 .page{display:none}
 .page.active{display:block;animation:fadein .2s cubic-bezier(.4,0,.2,1)}
 @keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
@@ -636,45 +651,70 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:30px 0}
 .mobile-overlay.show{display:block}
 
 @media(max-width:768px){
+  /* ── Sidebar gaveta ── */
   .hamburger{display:flex}
-  .sidebar{position:fixed;left:-288px;top:0;bottom:0;width:272px!important;z-index:1000;transition:left .25s cubic-bezier(.4,0,.2,1)}
-  .sidebar.mobile-open{left:0;box-shadow:8px 0 40px rgba(0,0,0,.5)}
-  .sidebar.collapsed{width:272px!important;left:-288px}
-  .sidebar.collapsed.mobile-open{left:0}
+  .sidebar{position:fixed;left:-290px;top:0;bottom:0;height:100vh;height:100dvh;width:272px!important;z-index:1000;transition:left .28s cubic-bezier(.4,0,.2,1);box-shadow:none}
+  .sidebar.mobile-open{left:0!important;box-shadow:8px 0 48px rgba(0,0,0,.6)}
+  .sidebar.collapsed,.sidebar.collapsed.mobile-open{width:272px!important}
+  .sidebar.collapsed{left:-290px}
+  .sidebar.collapsed.mobile-open{left:0!important}
   .sidebar-toggle{display:none!important}
-  .main{margin-left:0!important;width:100%}
-  .topbar{padding:0 14px;height:56px;gap:6px}
+  /* ── Layout principal ── */
+  .app{height:100vh;height:100dvh;flex-direction:row;overflow:hidden}
+  .main{margin-left:0!important;width:100%!important;min-width:0;overflow:hidden}
+  /* ── Topbar ── */
+  .topbar{padding:0 12px;height:54px;gap:6px}
   .topbar-sub{display:none}
-  .global-search-wrap{flex:1}
   .topbar-empresa-nome{display:none}
-  .content{padding:14px;padding-bottom:calc(70px + env(safe-area-inset-bottom))}
-  .table-wrapper{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  table{min-width:480px;font-size:12px}
-  .form-grid{grid-template-columns:1fr!important}
-  .config-grid{grid-template-columns:1fr!important}
-  .fin-cards{grid-template-columns:1fr 1fr!important}
+  .global-search-wrap{flex:1;min-width:0}
+  /* ── Conteúdo ── */
+  .content{padding:12px 12px 80px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;flex:1;min-height:0}
+  /* ── Grids e cards ── */
+  .grid-stats{grid-template-columns:1fr 1fr!important;gap:8px}
+  .stat-card{padding:14px 12px}
+  .stat-value{font-size:20px}
+  .ag-resumo{grid-template-columns:1fr!important;gap:8px}
+  .dash-bottom{grid-template-columns:1fr!important}
   .chart-row{grid-template-columns:1fr!important}
   .rank-grid{grid-template-columns:1fr!important}
-  .grid-stats{grid-template-columns:1fr 1fr!important}
-  .dash-filter-bar{gap:5px;flex-wrap:wrap}
-  .dash-vendas-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .dash-vendas-scroll table{min-width:380px;font-size:12px}
-  .filter-btn{padding:5px 9px;font-size:12px}
-  .modal-overlay{align-items:flex-end!important;padding:0}
-  .modal-box{max-width:100%!important;width:100%!important;max-height:92vh;overflow-y:auto;border-radius:16px 16px 0 0!important;margin:0;box-shadow:0 -8px 40px rgba(0,0,0,.4)}
-  .modal-box.edit-size{max-height:96vh}
-  .toolbar{flex-wrap:wrap;gap:8px}
-  .rel-menu-wrap{margin-bottom:8px}
-  .btn{min-height:38px}
-  .form-section{padding:14px}
+  .fin-cards{grid-template-columns:1fr 1fr!important}
   .resumo-box{grid-template-columns:1fr 1fr!important}
-  .td-actions{flex-wrap:wrap;gap:4px}
   .edit-add-row{grid-template-columns:1fr 1fr!important}
+  .form-grid{grid-template-columns:1fr!important}
+  .config-grid{grid-template-columns:1fr!important}
+  /* ── Tabelas ── */
+  .table-wrapper{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--radius)}
+  table{min-width:480px;font-size:12px}
+  .dash-vendas-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .dash-vendas-scroll table{min-width:360px;font-size:12px}
+  /* ── Filtros e toolbar ── */
+  .dash-filter-bar{gap:5px;flex-wrap:wrap}
+  .filter-btn{padding:5px 10px;font-size:11px}
+  .toolbar{flex-wrap:wrap;gap:6px}
+  .rel-menu-wrap{margin-bottom:8px}
+  .ag-toolbar{flex-direction:column;align-items:flex-start;gap:8px}
+  /* ── Modais — sheet bottom ── */
+  .modal-overlay{align-items:flex-end!important;padding:0!important}
+  .modal-box{max-width:100%!important;width:100%!important;max-height:93vh;overflow-y:auto;border-radius:18px 18px 0 0!important;margin:0!important;padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+  /* ── Agenda ── */
+  .ag-cal-cell{min-height:52px;padding:4px}
+  .ag-cal-ev{font-size:9px}
+  .ag-card{flex-direction:column;gap:8px}
+  .ag-card-left{flex-direction:row;align-items:center;min-width:unset}
+  .ag-card-actions{flex-direction:row;justify-content:flex-end}
+  /* ── Misc ── */
+  .btn{min-height:40px}
+  .form-section{padding:12px}
+  .td-actions{flex-wrap:wrap;gap:4px}
+  .sidebar-footer-inner{display:none}
 }
-@media(max-width:400px){
+@media(max-width:440px){
   .grid-stats{grid-template-columns:1fr!important}
   .fin-cards{grid-template-columns:1fr!important}
-  .content{padding:10px}
+  .resumo-box{grid-template-columns:1fr!important}
+  .content{padding:10px 10px 80px}
+  .topbar{padding:0 10px}
+  .stat-value{font-size:18px}
 }
 
 @media print{body{background:#fff!important;color:#000!important;overflow:auto!important;height:auto!important}.app,.sidebar,.topbar,.nav,.toast-container,.modal-overlay{display:none!important}@page{margin:20mm}}
@@ -1268,7 +1308,7 @@ thead th{color:var(--text-dim)!important;font-weight:700}
     <div class="logo">
       <div class="logo-text" onclick="showPage('configuracoes',document.querySelector('[data-tip=Configurações]'))" style="cursor:pointer" title="Abrir configurações">
         <div class="logo-name">ASS<span>ENT</span></div>
-        <div class="logo-ver">v4.6 · sistema</div>
+        <div class="logo-ver">v1.2 · sistema</div>
         <div id="backupStatus" style="font-size:10px;color:var(--green);margin-top:2px;display:none;font-family:'JetBrains Mono',monospace"></div>
       </div>
       <button class="sidebar-toggle" onclick="toggleSidebar()" title="Recolher menu">◀</button>
@@ -1319,7 +1359,7 @@ thead th{color:var(--text-dim)!important;font-weight:700}
         </div>
         <div class="sidebar-footer-brand">ASS<span>ENT</span></div>
         <div class="sidebar-footer-sub">Sistema de Gestão</div>
-        <div class="sidebar-footer-copy">© 2026 ASSENT · v4.6</div>
+        <div class="sidebar-footer-copy">© 2026 ASSENT · v1.2</div>
       </div>
     </div>
   </div>
@@ -1563,6 +1603,7 @@ thead th{color:var(--text-dim)!important;font-weight:700}
                   <input type="hidden" id="servicoCategoria">
                 </div>
                 <button type="button" class="btn btn-ghost btn-sm" onclick="adicionarCategoria()" title="Nova categoria" style="flex-shrink:0;padding:0 10px;font-size:16px">＋</button>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="openModalGerenciarCategorias()" title="Gerenciar categorias" style="flex-shrink:0;padding:0 10px;font-size:14px">⚙️</button>
               </div>
             </div>
             <div class="form-group" style="grid-column:1/-1">
@@ -2790,19 +2831,33 @@ function save(){
   lsSet('entradas',entradas);lsSet('caixas',caixas);lsSet('servicos',servicos)
   lsSet('despesas',despesas);lsSet('fornecedores',fornecedores);lsSet('vendedores',vendedores)
   lsSet('agenda',agenda);lsSet('agendaTipos',agendaTipos)
-  _syncFirestore()
-  renderDashboard();renderClientes();renderProdutos();renderServicos();renderVendas()
-  renderEntradas();renderCaixa();renderDespesas();renderFornecedores();renderVendedores();renderFiado();renderAgenda();atualizarResumo();populateSelects()
+  _syncFirestoreDebounced()
+  // Renderiza só a página visível + dashboard (resumo) + selects
+  const pagAtiva=document.querySelector('.page.active')?.id||''
+  const renderMap={
+    dashboard:renderDashboard,clientes:renderClientes,produtos:renderProdutos,
+    servicos:renderServicos,vendas:renderVendas,entrada:()=>{renderEntradas();populateSelects()},
+    caixa:renderCaixa,despesas:renderDespesas,fornecedores:renderFornecedores,
+    vendedores:renderVendedores,fiado:renderFiado,agenda:renderAgenda,
+    relatorios:renderRelatorio
+  }
+  if(renderMap[pagAtiva]) renderMap[pagAtiva]()
+  // Dashboard sempre atualiza o resumo rápido
+  if(pagAtiva!=='dashboard') atualizarResumo()
+  // Selects só se necessário
+  if(['entrada','vendas'].includes(pagAtiva)) populateSelects()
 }
 
 // ══ SYNC FIRESTORE ══
-// Salva todos os dados no Firestore sob o UID do usuário logado.
-// Executado de forma assíncrona (sem bloquear a UI).
+let _syncTimer=null
+function _syncFirestoreDebounced(){
+  clearTimeout(_syncTimer)
+  _syncTimer=setTimeout(_syncFirestore, 1500)
+}
 function _syncFirestore(){
   if(!window._fbUsuarioAtual)return
   const uid=window._fbUsuarioAtual.uid
   const saleIdCnt=parseInt(localStorage.getItem('saleIdCnt')||'0')
-  // Remove logo do sync (pode ser base64 grande; ultrapassa o limite de 1MB do Firestore)
   const cfgSemLogo={...config,logo:config.logo?'__has_logo__':''}
   const payload={
     clientes,produtos,vendas,entradas,caixas,
@@ -2821,7 +2876,7 @@ function saveConfig(){
   config.estoqueMin=parseInt2(document.getElementById('cfgEstoqueMin').value,3,0)
   config.githubRepo=undefined // campo removido — repo fixo internamente
   lsSet('config',config)
-  _syncFirestore()
+  _syncFirestoreDebounced()
   applyConfig()
   renderStockAlert()
   renderProdutos()
@@ -3584,7 +3639,7 @@ function imprimirVenda(){
     (v.obs?'<div style="background:#f9f9f9;border:1px solid #ddd;border-radius:6px;padding:10px;margin-bottom:14px;font-size:12px">'+escHtml(v.obs)+'</div>':'')+
     '<table><thead><tr><th>Produto</th><th style="text-align:center">Qtd</th><th style="text-align:right">Preço</th><th style="text-align:right">Custo</th><th style="text-align:center">Desc.</th><th style="text-align:right">Total</th></tr></thead><tbody>'+linhas+'</tbody></table>'+
     '<div class="totals"><div class="tot-item"><div class="tot-label">Subtotal</div><div class="tot-value">'+brl(sb)+'</div></div><div class="tot-item"><div class="tot-label">Descontos</div><div class="tot-value">'+brl(sd)+'</div></div><div class="tot-item"><div class="tot-label">Total</div><div class="tot-value" style="color:#16a34a">'+brl(total)+'</div></div><div class="tot-item"><div class="tot-label">Lucro est.</div><div class="tot-value" style="color:#4f46e5">'+brl(total-sc)+'</div></div></div>'+
-    '<div class="footer">ASSENT Sistema v4.6</div><script>window.onload=function(){window.print();window.onafterprint=function(){window.close()}}<\/script></body></html>'
+    '<div class="footer">ASSENT Sistema v1.2</div><script>window.onload=function(){window.print();window.onafterprint=function(){window.close()}}<\/script></body></html>'
   const w=window.open('','_blank','width=900,height=700');if(!w){toast('Pop-up bloqueado.','warning');return}
   w.document.write(html);w.document.close()
 }
@@ -3963,7 +4018,7 @@ function imprimirRelatorio(){
     '<h1>Relatório — '+tipoLabel+'</h1><div class="sub">Período: '+periodoLabel+' · Gerado em '+new Date().toLocaleDateString('pt-BR')+' às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+'</div>'+
     '<div class="summary">'+document.getElementById('relSummary').innerHTML.replace(/class="rel-sum-card"/g,'class="sum-card"').replace(/class="rel-sum-label"/g,'class="sum-label"').replace(/class="rel-sum-value"[^>]*>/g,_=>'class="sum-value">')+'</div>'+
     document.getElementById('relTableContent').innerHTML+
-    '<div class="footer">ASSENT Sistema v4.6</div><script>window.onload=function(){window.print();window.onafterprint=function(){window.close()}}<\/script></body></html>'
+    '<div class="footer">ASSENT Sistema v1.2</div><script>window.onload=function(){window.print();window.onafterprint=function(){window.close()}}<\/script></body></html>'
   const w=window.open('','_blank','width=1000,height=750');if(!w){toast('Pop-up bloqueado.','warning');return}
   w.document.write(html);w.document.close()
 }
@@ -4619,11 +4674,19 @@ function toggleSidebar(){
 // Restaura estado do sidebar
 ;(function(){
   try{
-    if(localStorage.getItem('assent_sidebar_collapsed')==='1'){
+    const isMobile=window.innerWidth<=768
+    if(!isMobile && localStorage.getItem('assent_sidebar_collapsed')==='1'){
       const sb=document.getElementById('sidebar')
       sb.classList.add('collapsed')
       const btn=sb.querySelector('.sidebar-toggle')
       if(btn){btn.textContent='▶';btn.title='Expandir menu'}
+    }
+    // Garante que no mobile o sidebar começa fechado (sem mobile-open)
+    if(isMobile){
+      const sb=document.getElementById('sidebar')
+      sb.classList.remove('mobile-open')
+      const ov=document.getElementById('mobileOverlay')
+      if(ov)ov.classList.remove('show')
     }
   }catch(e){}
 })()
@@ -6211,7 +6274,7 @@ function renderRelFiado(pv,sumEl,titleEl,countEl,contentEl){
 }
 
 /* ══ ATUALIZAÇÃO VIA GITHUB ══ */
-const VERSAO_ATUAL='4.6'
+const VERSAO_ATUAL='1.2'
 const GITHUB_REPO='michaeldsc10/assent'
 const GITHUB_PAGES_URL='https://michaeldsc10.github.io/assent/'
 
@@ -6672,7 +6735,7 @@ function _processarBackupJson(texto){
       lsSet('entradas',entradas);lsSet('caixas',caixas);lsSet('servicos',servicos)
       lsSet('despesas',despesas);lsSet('fornecedores',fornecedores);lsSet('vendedores',vendedores)
       lsSet('config',config)
-      _syncFirestore() // ← sobe o backup restaurado para o Firestore
+      _syncFirestore() // ← sobe o backup restaurado para o Firestore (imediato, não debounce)
       toast('✅ Backup restaurado com sucesso!');render()
     },'Restaurar backup','Restaurar','btn-warning')
   }catch(e){toast('Arquivo inválido ou corrompido.','error')}
@@ -6701,11 +6764,14 @@ const _origShowPage=typeof showPage==='function'?showPage:null
 
 /* ═══ SERVICE WORKER ═══ */
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('./sw.js')
-      .then(r=>console.log('SW registrado:',r.scope))
-      .catch(e=>console.log('SW não disponível:',e.message))
+  // Desregistra qualquer SW em cache — sw.js não existe neste servidor
+  navigator.serviceWorker.getRegistrations().then(regs=>{
+    regs.forEach(r=>{r.unregister();console.log('SW removido:',r.scope)})
   })
+  // Limpa todos os caches
+  if(window.caches){
+    caches.keys().then(keys=>keys.forEach(k=>caches.delete(k)))
+  }
 }
 
 /* ══ ASSISTENTE IA ══ */
@@ -6856,7 +6922,7 @@ function iaAdicionarMensagem(papel, texto, tipo){
   const div = document.createElement('div')
   div.className = 'ia-msg ' + papel
   div.innerHTML =
-    '<div class="ia-avatar">' + (isUser ? '👤' : '<svg width="16" height="16" viewBox="0 0 100 100" fill="none"><polygon points="50,6 94,76 6,76" fill="none" stroke="#C9A84C" stroke-width="9" stroke-linejoin="round"/><line x1="50" y1="6" x2="50" y2="76" stroke="#C9A84C" stroke-width="4" opacity=".45"/></svg>') + '</div>' +
+    '<div class="ia-avatar">' + (isUser ? '👤' : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 100 100"><polygon points="50,6 94,76 6,76" fill="none" stroke="#C9A84C" stroke-width="9" stroke-linejoin="round"/><line x1="50" y1="6" x2="50" y2="76" stroke="#C9A84C" stroke-width="4" opacity=".45"/></svg>') + '</div>' +
     '<div class="ia-bubble ' + (tipo || papel) + '">' + escHtml(texto).replace(/\n/g,'<br>') + '</div>'
   el.appendChild(div)
   el.scrollTop = el.scrollHeight
@@ -6869,7 +6935,7 @@ function iaAdicionarLoading(){
   const div = document.createElement('div')
   div.className = 'ia-msg assistant'
   div.id = 'iaLoadingMsg'
-  div.innerHTML = '<div class="ia-avatar"><svg width="16" height="16" viewBox="0 0 100 100" fill="none"><polygon points="50,6 94,76 6,76" fill="none" stroke="#C9A84C" stroke-width="9" stroke-linejoin="round"/><line x1="50" y1="6" x2="50" y2="76" stroke="#C9A84C" stroke-width="4" opacity=".45"/></svg></div><div class="ia-bubble loading">Pensando…</div>'
+  div.innerHTML = '<div class="ia-avatar"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 100 100"><polygon points="50,6 94,76 6,76" fill="none" stroke="#C9A84C" stroke-width="9" stroke-linejoin="round"/><line x1="50" y1="6" x2="50" y2="76" stroke="#C9A84C" stroke-width="4" opacity=".45"/></svg></div><div class="ia-bubble loading">Pensando…</div>'
   el.appendChild(div)
   el.scrollTop = el.scrollHeight
   return div
