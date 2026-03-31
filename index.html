@@ -181,7 +181,7 @@ body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);height
 .content{flex:1;overflow-y:auto;overflow-x:hidden;padding:28px;min-height:0}
 .page{display:none}
 .page.active{display:block;animation:fadein .2s cubic-bezier(.4,0,.2,1)}
-@keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
 
 
 
@@ -653,22 +653,25 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:30px 0}
 @media(max-width:768px){
   /* ── Sidebar gaveta ── */
   .hamburger{display:flex}
-  .sidebar{position:fixed;left:-290px;top:0;bottom:0;height:100vh;height:100dvh;width:272px!important;z-index:1000;transition:left .28s cubic-bezier(.4,0,.2,1);box-shadow:none}
+  .sidebar{position:fixed;left:-290px;top:0;bottom:0;width:272px!important;z-index:1000;background:var(--surface);transition:left .28s cubic-bezier(.4,0,.2,1);box-shadow:none;transform:translateZ(0)}
   .sidebar.mobile-open{left:0!important;box-shadow:8px 0 48px rgba(0,0,0,.6)}
   .sidebar.collapsed,.sidebar.collapsed.mobile-open{width:272px!important}
   .sidebar.collapsed{left:-290px}
   .sidebar.collapsed.mobile-open{left:0!important}
   .sidebar-toggle{display:none!important}
   /* ── Layout principal ── */
-  .app{height:100vh;height:100dvh;flex-direction:row;overflow:hidden}
-  .main{margin-left:0!important;width:100%!important;min-width:0;overflow:hidden}
+  .app{position:fixed;inset:0;flex-direction:row;overflow:hidden}
+  .main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden;min-height:0}
   /* ── Topbar ── */
-  .topbar{padding:0 12px;height:54px;gap:6px}
+  .topbar{padding:0 12px;height:54px;gap:6px;flex-shrink:0}
   .topbar-sub{display:none}
   .topbar-empresa-nome{display:none}
   .global-search-wrap{flex:1;min-width:0}
   /* ── Conteúdo ── */
-  .content{padding:12px 12px 80px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;flex:1;min-height:0}
+  .content{flex:1;overflow-y:scroll;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:12px 12px 80px;min-height:0;overscroll-behavior:contain;transform:translateZ(0)}
+  /* ── Nav items — força paint ── */
+  .nav{transform:translateZ(0);overflow-y:scroll;-webkit-overflow-scrolling:touch}
+  .nav-btn{transform:translateZ(0)}
   /* ── Grids e cards ── */
   .grid-stats{grid-template-columns:1fr 1fr!important;gap:8px}
   .stat-card{padding:14px 12px}
@@ -6764,14 +6767,10 @@ const _origShowPage=typeof showPage==='function'?showPage:null
 
 /* ═══ SERVICE WORKER ═══ */
 if('serviceWorker' in navigator){
-  // Desregistra qualquer SW em cache — sw.js não existe neste servidor
   navigator.serviceWorker.getRegistrations().then(regs=>{
-    regs.forEach(r=>{r.unregister();console.log('SW removido:',r.scope)})
+    regs.forEach(r=>r.unregister())
   })
-  // Limpa todos os caches
-  if(window.caches){
-    caches.keys().then(keys=>keys.forEach(k=>caches.delete(k)))
-  }
+  if(window.caches){caches.keys().then(keys=>keys.forEach(k=>caches.delete(k)))}
 }
 
 /* ══ ASSISTENTE IA ══ */
