@@ -2,14 +2,14 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=1280">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0f1117">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ASSENT">
 <meta name="description" content="Sistema de gestão empresarial offline">
-<!-- manifest desabilitado -->
+<!-- <link rel="manifest" href="manifest.json"> -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,8 94,80 6,80' fill='none' stroke='%23C9A84C' stroke-width='10' stroke-linejoin='round'/%3E%3Cline x1='50' y1='8' x2='50' y2='80' stroke='%23C9A84C' stroke-width='5' opacity='.5'/%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>ASSENT Sistema v1.2</title>
@@ -128,13 +128,13 @@ html[data-theme="light"]{
 .theme-toggle{background:none;border:1px solid var(--border2);border-radius:var(--radius);padding:6px 10px;cursor:pointer;font-size:15px;color:var(--text-dim);transition:all .15s;flex-shrink:0}
 .theme-toggle:hover{background:var(--surface2);border-color:var(--accent);color:var(--accent)}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);height:100vh;height:100dvh;overflow:hidden}
 ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#2a2218;border-radius:99px}::-webkit-scrollbar-thumb:hover{background:#3a3020}
 
 /* ── LAYOUT ── */
 :root{--sidebar-w:240px;--sidebar-w-col:60px;--ts:.22s}
-.app{display:flex;height:100vh}.app--visible{display:flex}
-.sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;transition:width var(--ts) cubic-bezier(.4,0,.2,1);min-height:0}
+.app{display:none;flex:unset;height:100vh}
+.sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;transition:width var(--ts) cubic-bezier(.4,0,.2,1)}
 .sidebar.collapsed{width:var(--sidebar-w-col)}
 .logo{padding:14px 12px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;min-height:62px;flex-shrink:0;gap:8px;position:relative;}
 .logo::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--accent),transparent);opacity:.25;pointer-events:none}
@@ -151,7 +151,7 @@ body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);height
 .sidebar-toggle{background:none;border:1px solid var(--border2);border-radius:7px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);font-size:12px;flex-shrink:0;transition:all .15s}
 .sidebar-toggle:hover{background:var(--surface2);color:var(--accent);border-color:var(--accent)}
 .sidebar.collapsed .sidebar-toggle{margin:0 auto}
-.nav{flex:1;padding:8px;display:flex;flex-direction:column;gap:1px;overflow-y:auto;overflow-x:hidden;min-height:0}
+.nav{flex:1;padding:8px;display:flex;flex-direction:column;gap:1px;overflow-y:auto;overflow-x:hidden}
 .nav-label{font-size:9px;font-weight:700;letter-spacing:.14em;color:var(--text-muted);text-transform:uppercase;padding:10px 6px 3px;white-space:nowrap;overflow:hidden;transition:opacity var(--ts),max-height var(--ts),padding var(--ts)}
 .sidebar.collapsed .nav-label{opacity:0;max-height:0;padding:0;pointer-events:none}
 .nav-divider{height:1px;background:var(--border);margin:4px 0;flex-shrink:0}
@@ -181,7 +181,7 @@ body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);height
 .content{flex:1;overflow-y:auto;overflow-x:hidden;padding:28px;min-height:0}
 .page{display:none}
 .page.active{display:block;animation:fadein .2s cubic-bezier(.4,0,.2,1)}
-@keyframes fadein{from{opacity:0}to{opacity:1}}
+@keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
 
 
@@ -230,8 +230,9 @@ body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);height
 
 /* ── CHART ── */
 .chart-row{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px}
-
+@media(max-width:768px){.chart-row{grid-template-columns:1fr}}
 .chart-body{padding:14px;min-height:0}
+@media(max-width:600px){.chart-body canvas{max-height:200px!important}}
 .chart-panel{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
 .chart-panel-top{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
 .chart-panel-title{font-size:13px;font-weight:600;color:var(--text-dim)}
@@ -240,6 +241,7 @@ body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);height
 
 /* ── RANKINGS ── */
 .rank-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:768px){.rank-grid{grid-template-columns:1fr}}
 .rank-panel{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
 .rank-panel-top{padding:14px 18px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600;color:var(--text-dim)}
 .rank-list{padding:8px 0}
@@ -255,6 +257,7 @@ body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);height
 
 /* ── DASH ── */
 .dash-bottom{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:900px){.dash-bottom{grid-template-columns:1fr}}
 .dash-panel{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
 .panel-top{padding:14px 18px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600;color:var(--text-dim)}
 
@@ -418,6 +421,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:30px 0}
 .caixa-pgto-label{font-size:11px;color:var(--text-muted);margin-bottom:4px}
 .caixa-pgto-val{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600}
 .caixa-ops-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+@media(max-width:700px){.caixa-ops-grid{grid-template-columns:1fr}}
 .caixa-mov-row{display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid var(--border);font-size:13px}
 .caixa-mov-row:last-child{border-bottom:none}
 .caixa-mov-icon{font-size:15px;width:26px;text-align:center;flex-shrink:0}
@@ -427,6 +431,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:30px 0}
 .caixa-mov-val.pos{color:var(--green)}.caixa-mov-val.neg{color:var(--red)}.caixa-mov-val.neu{color:var(--accent)}
 .fechamento-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px;margin-bottom:20px}
 .fechamento-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px}
+@media(max-width:700px){.fechamento-grid{grid-template-columns:1fr}}
 .conferencia-box{background:var(--surface3);border-radius:var(--radius);padding:14px 18px;margin-bottom:16px}
 .conferencia-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)}
 .conferencia-row:last-child{border-bottom:none;padding-top:10px;font-weight:600;font-size:14px}
@@ -457,7 +462,8 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:30px 0}
 
 /* ── FINANCEIRO CARDS ── */
 .fin-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:20px}
-
+@media(max-width:700px){.fin-cards{grid-template-columns:1fr 1fr}}
+@media(max-width:440px){.fin-cards{grid-template-columns:1fr}}
 .fin-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;position:relative;overflow:hidden}
 .fin-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
 .fin-card.receita::before{background:var(--green)}
@@ -476,6 +482,8 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:30px 0}
 
 /* ── MÉTRICAS SECUNDÁRIAS ── */
 .met-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:20px}
+@media(max-width:600px){.met-cards{grid-template-columns:1fr 1fr}}
+@media(max-width:380px){.met-cards{grid-template-columns:1fr}}
 .met-card{background:var(--surface3);border:1px solid var(--border2);border-radius:var(--radius);padding:14px 16px}
 .met-card-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:6px}
 .met-card-value{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--text);line-height:1}
@@ -631,94 +639,78 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:30px 0}
 #iaFloatWin .ia-win-footer textarea{flex:1;resize:none;min-height:38px;max-height:100px;font-family:inherit;font-size:13px;padding:8px 12px;background:var(--surface3);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);outline:none;transition:border-color .15s}
 #iaFloatWin .ia-win-footer textarea:focus{border-color:var(--accent)}
 #iaFloatWin .ia-win-powered{font-size:10px;color:var(--text-muted);text-align:center;padding:4px 12px 6px;flex-shrink:0}
+@media(max-width:480px){#iaFloatWin{right:12px;bottom:84px;width:calc(100vw - 24px)}#iaFloatBtn{right:12px;bottom:12px}}
 
 /* ── MISC ── */
 .tab-warning{display:none;position:fixed;top:0;left:0;right:0;z-index:99999;background:var(--yellow);color:#0e0800;padding:10px 20px;text-align:center;font-size:13px;font-weight:600}
 .tab-warning.show{display:block}
 /* ═══ MOBILE / PWA ═══ */
-
-
-
-
-
-
-
-
-
-/* ── MOBILE DRAWER ── */
-.hamburger{display:none;background:none;border:1px solid var(--border2);border-radius:7px;width:36px;height:36px;align-items:center;justify-content:center;cursor:pointer;color:var(--text-dim);font-size:18px;flex-shrink:0;margin-right:6px}
-.hamburger:hover{background:var(--surface2);color:var(--accent)}
-.mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:999;touch-action:none}
+.hamburger{display:none;background:none;border:1px solid var(--border2);border-radius:7px;width:36px;height:36px;align-items:center;justify-content:center;cursor:pointer;color:var(--text-dim);font-size:18px;flex-shrink:0;margin-right:6px;transition:all .15s}
+.hamburger:hover{background:var(--surface2);color:var(--accent);border-color:var(--accent)}
+.mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:999}
 .mobile-overlay.show{display:block}
 
 @media(max-width:768px){
-  /* Hamburger visível */
   .hamburger{display:flex}
   body{height:100%;overflow:hidden}
-
   /* App ocupa tela toda via fixed — imune ao 100vh do Chrome */
   .app{position:fixed!important;top:0!important;left:0!important;right:0!important;bottom:0!important;width:100%!important;height:100%!important;flex-direction:row!important}
-
   /* Sidebar como gaveta off-canvas */
-  .sidebar{
-    position:fixed!important;
-    top:0;bottom:0;left:-280px;
-    width:260px!important;
-    height:100%!important;
-    z-index:1000;
-    transition:left .25s ease;
-    background:var(--surface)!important;
-  }
-  .sidebar.open{left:0}
-  .sidebar.collapsed{width:260px!important;left:-280px}
-  .sidebar.collapsed.open{left:0}
+  .sidebar{position:fixed!important;top:0;bottom:0;left:-290px;width:272px!important;height:100%!important;z-index:1000;transition:left .25s ease;background:var(--surface)!important}
+  .sidebar.mobile-open{left:0!important;box-shadow:8px 0 48px rgba(0,0,0,.6)}
+  .sidebar.collapsed{width:272px!important;left:-290px}
+  .sidebar.collapsed.mobile-open{left:0!important}
   .sidebar-toggle{display:none!important}
-
   /* Main ocupa tudo */
   .main{flex:1;width:100%;overflow:hidden;display:flex;flex-direction:column}
-  .topbar{padding:0 12px;height:52px;flex-shrink:0}
-  .topbar-sub,.topbar-empresa-nome{display:none}
-
+  .topbar{padding:0 12px;height:54px;flex-shrink:0;gap:6px}
+  .topbar-sub{display:none}
+  .topbar-empresa-nome{display:none}
+  .global-search-wrap{flex:1;min-width:0}
   /* Conteúdo com scroll */
-  .content{
-    flex:1;
-    overflow-y:auto;
-    -webkit-overflow-scrolling:touch;
-    overscroll-behavior:contain;
-    padding:14px 12px 80px;
-    min-height:0;
-  }
-
+  .content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:12px 12px 80px;min-height:0}
   /* Modais como bottom sheet */
   .modal-overlay{align-items:flex-end!important;padding:0!important}
-  .modal-box{
-    max-width:100%!important;width:100%!important;
-    max-height:90vh;overflow-y:auto;
-    border-radius:18px 18px 0 0!important;
-    margin:0!important;
-  }
-
+  .modal-box{max-width:100%!important;width:100%!important;max-height:93vh;overflow-y:auto;border-radius:18px 18px 0 0!important;margin:0!important;padding-bottom:calc(16px + env(safe-area-inset-bottom))}
   /* Grids */
   .grid-stats{grid-template-columns:1fr 1fr!important;gap:8px}
-  .ag-resumo{grid-template-columns:1fr 1fr!important;gap:8px}
-  .dash-bottom,.chart-row,.rank-grid,.form-grid,.config-grid{grid-template-columns:1fr!important}
-  .fin-cards,.resumo-box,.edit-add-row{grid-template-columns:1fr 1fr!important}
-
+  .stat-card{padding:14px 12px}
+  .stat-value{font-size:20px}
+  .ag-resumo{grid-template-columns:1fr!important;gap:8px}
+  .dash-bottom{grid-template-columns:1fr!important}
+  .chart-row{grid-template-columns:1fr!important}
+  .rank-grid{grid-template-columns:1fr!important}
+  .fin-cards{grid-template-columns:1fr 1fr!important}
+  .resumo-box{grid-template-columns:1fr 1fr!important}
+  .edit-add-row{grid-template-columns:1fr 1fr!important}
+  .form-grid{grid-template-columns:1fr!important}
+  .config-grid{grid-template-columns:1fr!important}
   /* Tabelas */
-  .table-wrapper,.dash-vendas-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .table-wrapper{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--radius)}
   table{min-width:480px;font-size:12px}
-
-  /* Misc */
-  .toolbar{flex-wrap:wrap;gap:6px}
+  .dash-vendas-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .dash-vendas-scroll table{min-width:360px;font-size:12px}
+  /* Filtros e toolbar */
+  .dash-filter-bar{gap:5px;flex-wrap:wrap}
   .filter-btn{padding:5px 10px;font-size:11px}
-  .btn{min-height:40px}
-  .ag-toolbar{flex-direction:column;align-items:flex-start;gap:8px}
+  .toolbar{flex-wrap:wrap;gap:6px}
   .rel-menu-wrap{margin-bottom:8px}
+  .ag-toolbar{flex-direction:column;align-items:flex-start;gap:8px}
+  /* Misc */
+  .btn{min-height:40px}
+  .form-section{padding:12px}
+  .td-actions{flex-wrap:wrap;gap:4px}
+  .sidebar-footer-inner{display:none}
 }
-@media(max-width:420px){
-  .grid-stats,.fin-cards,.resumo-box,.ag-resumo{grid-template-columns:1fr!important}
+@media(max-width:440px){
+  .grid-stats{grid-template-columns:1fr!important}
+  .fin-cards{grid-template-columns:1fr!important}
+  .resumo-box{grid-template-columns:1fr!important}
   .content{padding:10px 10px 80px}
+  .topbar{padding:0 10px}
+  .stat-value{font-size:18px}
 }
+
 @media print{body{background:#fff!important;color:#000!important;overflow:auto!important;height:auto!important}.app,.sidebar,.topbar,.nav,.toast-container,.modal-overlay{display:none!important}@page{margin:20mm}}
 
 /* ══ PROFUNDIDADE & ANIMAÇÕES PREMIUM ══ */
@@ -1830,43 +1822,12 @@ thead th{color:var(--text-dim)!important;font-weight:700}
                 <option value="Boleto">📄 Boleto</option>
                 <option value="Fiado">📒 Fiado (a receber)</option>
                 <option value="Parcelado">📅 Parcelado</option>
-                <option value="Sinal">🤝 Sinal + Restante a receber</option>
                 <option value="Outro">🔄 Outro</option>
               </select>
             </div>
             <div class="form-group" id="fgFiadoVenc" style="display:none">
               <label>Vencimento do fiado <span style="color:var(--red)">*</span></label>
               <input id="vendaFiadoVenc" type="date">
-            </div>
-            <!-- Campos de Sinal -->
-            <div id="fgSinal" style="display:none;background:var(--surface3);border-radius:var(--radius);padding:14px;margin-top:4px;display:none">
-              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin-bottom:10px">🤝 Sinal (entrada)</div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-                <div class="form-group">
-                  <label>Valor do sinal <span style="color:var(--red)">*</span></label>
-                  <input type="number" id="vendaSinalValor" placeholder="0,00" min="0" step="0.01"
-                    oninput="atualizarRestanteSinal()">
-                </div>
-                <div class="form-group">
-                  <label>Pagamento do sinal</label>
-                  <select id="vendaSinalForma">
-                    <option value="Dinheiro">💵 Dinheiro</option>
-                    <option value="Pix">📲 Pix</option>
-                    <option value="Cartão Débito">💳 Cartão Débito</option>
-                    <option value="Cartão Crédito">💳 Cartão Crédito</option>
-                    <option value="Boleto">📄 Boleto</option>
-                    <option value="Outro">🔄 Outro</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label>Vencimento do restante <span style="color:var(--red)">*</span></label>
-                  <input type="date" id="vendaSinalVenc">
-                </div>
-                <div class="form-group">
-                  <label>Restante a receber</label>
-                  <div id="vendaSinalRestante" style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:var(--accent);padding:8px 0">R$ 0,00</div>
-                </div>
-              </div>
             </div>
           </div>
           <button class="btn btn-primary" onclick="addItemVenda()">＋ Adicionar item</button>
@@ -2703,8 +2664,7 @@ let _vendaAtual=null
 function openModalVenda(v){
   _vendaAtual=v
   document.getElementById('mvId').textContent=v.id||'—'
-  const sinalInfo=v.sinal?'<br>💰 Sinal pago: <b>'+brl(v.sinal.valor)+'</b> via '+escHtml(v.sinal.forma)+'<br>🔖 Restante: <b>'+brl(v.sinal.restante)+'</b> — vence '+fmtData(v.sinal.venc):''
-  document.getElementById('mvMeta').innerHTML='Cliente: <b>'+escHtml(v.cliente||'Não informado')+'</b><br>Data: '+fmtData(v.data)+(v.formaPagamento?'<br>Pagamento: <b>'+escHtml(v.formaPagamento)+'</b>':'')+sinalInfo
+  document.getElementById('mvMeta').innerHTML='Cliente: <b>'+escHtml(v.cliente||'Não informado')+'</b><br>Data: '+fmtData(v.data)+(v.formaPagamento?'<br>Pagamento: <b>'+escHtml(v.formaPagamento)+'</b>':'')
   const obsWrap=document.getElementById('mvObsWrap')
   if(v.obs){obsWrap.style.display='block';document.getElementById('mvObs').textContent=v.obs}else obsWrap.style.display='none'
   let sb=0,sd=0,sc=0
@@ -3533,9 +3493,6 @@ function atualizarResumo(){
   document.getElementById('rSubtotal').textContent=brl(sb);document.getElementById('rDesconto').textContent=brl(sd)
   document.getElementById('rCusto').textContent=brl(sc);document.getElementById('rTotal').textContent=brl(total)
   document.getElementById('rLucro').textContent=brl(total-sc)
-  // Atualiza restante do sinal se visível
-  const fp=document.getElementById('vendaFormaPgto')?.value
-  if(fp==='Sinal') atualizarRestanteSinal()
 }
 function finalizarVenda(){
   if(!itensVenda.length){toast('Adicione ao menos um item.','warning');return}
@@ -3552,30 +3509,11 @@ function finalizarVenda(){
   const obsNova=document.getElementById('vendaNovaObs').value.trim()
   const vendedor=document.getElementById('vendaVendedor')?.value||''
   const isFiado=fp==='Fiado'||fp==='Parcelado'
-  const isSinal=fp==='Sinal'
-  // Campos de sinal
-  const sinalValor=isSinal?(parseFloat(document.getElementById('vendaSinalValor')?.value||0)||0):0
-  const sinalForma=isSinal?(document.getElementById('vendaSinalForma')?.value||''):''
-  const sinalVenc=isSinal?(document.getElementById('vendaSinalVenc')?.value||''):''
-  const sinalRestante=isSinal?Math.max(0,total-sinalValor):0
-  if(isSinal&&!sinalVenc){toast('Informe o vencimento do restante.','error');return}
-  if(isSinal&&sinalValor<=0){toast('Informe o valor do sinal.','error');return}
-  if(isSinal&&sinalValor>=total){toast('O sinal não pode ser igual ou maior que o total.','error');return}
-  vendas.push({id:nextSaleId(),cliente:getVendaClienteNome(),itens:[...itensVenda],total,data:document.getElementById('vendaData').value||hoje(),obs:obsNova,
-    formaPagamento:isSinal?'Sinal ('+brl(sinalValor)+' via '+sinalForma+')':fp,
-    vendedor,
-    fiado:isFiado||isSinal,
-    fiadoVenc:isFiado?fiadoVenc:isSinal?sinalVenc:'',
-    fiadoRecebido:false,fiadoDataRecebimento:null,
-    sinal:isSinal?{valor:sinalValor,forma:sinalForma,restante:sinalRestante,venc:sinalVenc}:null
-  })
+  vendas.push({id:nextSaleId(),cliente:getVendaClienteNome(),itens:[...itensVenda],total,data:document.getElementById('vendaData').value||hoje(),obs:obsNova,formaPagamento:fp,vendedor,fiado:isFiado,fiadoVenc:isFiado?fiadoVenc:'',fiadoRecebido:false,fiadoDataRecebimento:null})
   itensVenda=[];document.getElementById('vendaData').value='';document.getElementById('vendaFormaPgto').value='';document.getElementById('vendaNovaObs').value=''
   const vvEl=document.getElementById('vendaVendedor');if(vvEl)vvEl.value=''
   const fvEl=document.getElementById('vendaFiadoVenc');if(fvEl)fvEl.value=''
   const fg=document.getElementById('fgFiadoVenc');if(fg)fg.style.display='none'
-  const svEl=document.getElementById('vendaSinalValor');if(svEl)svEl.value=''
-  const sfEl=document.getElementById('vendaSinalVenc');if(sfEl)sfEl.value=''
-  const fsEl=document.getElementById('fgSinal');if(fsEl)fsEl.style.display='none'
   resetVendaCliente()
   renderItens();atualizarResumo()
   toast('✅ Venda de '+brl(total)+' finalizada com sucesso!')
@@ -4730,13 +4668,20 @@ function toggleSidebar(){
 // Restaura estado do sidebar
 ;(function(){
   try{
-    if(localStorage.getItem('assent_sidebar_collapsed')==='1'){
+    const isMobile=window.innerWidth<=768
+    if(!isMobile && localStorage.getItem('assent_sidebar_collapsed')==='1'){
       const sb=document.getElementById('sidebar')
       sb.classList.add('collapsed')
       const btn=sb.querySelector('.sidebar-toggle')
       if(btn){btn.textContent='▶';btn.title='Expandir menu'}
     }
-
+    // Garante que no mobile o sidebar começa fechado (sem mobile-open)
+    if(isMobile){
+      const sb=document.getElementById('sidebar')
+      sb.classList.remove('mobile-open')
+      const ov=document.getElementById('mobileOverlay')
+      if(ov)ov.classList.remove('show')
+    }
   }catch(e){}
 })()
 
@@ -5963,19 +5908,7 @@ let _fiadoFiltro='pendentes'
 function onFormaPgtoChange(){
   const v=document.getElementById('vendaFormaPgto').value
   const fg=document.getElementById('fgFiadoVenc')
-  const fs=document.getElementById('fgSinal')
   if(fg) fg.style.display=(v==='Fiado'||v==='Parcelado')?'block':'none'
-  if(fs) fs.style.display=v==='Sinal'?'block':'none'
-  if(v==='Sinal') atualizarRestanteSinal()
-}
-function atualizarRestanteSinal(){
-  const sb=itensVenda.reduce((t,it)=>t+it.preco*it.qtd,0)
-  const sd=itensVenda.reduce((t,it)=>t+it.preco*it.qtd*(clamp(it.desconto)/100),0)
-  const total=sb-sd
-  const sinal=parseFloat(document.getElementById('vendaSinalValor')?.value||0)||0
-  const restante=Math.max(0,total-sinal)
-  const el=document.getElementById('vendaSinalRestante')
-  if(el) el.textContent=brl(restante)
 }
 
 function setFiadoFiltro(f,btn){
@@ -6806,11 +6739,11 @@ function _processarBackupJson(texto){
 function toggleMobileSidebar(){
   const sb=document.getElementById('sidebar')
   const ov=document.getElementById('mobileOverlay')
-  const isOpen=sb.classList.toggle('open')
-  if(ov)ov.classList.toggle('show',isOpen)
+  const isOpen=sb.classList.toggle('mobile-open')
+  ov.classList.toggle('show',isOpen)
 }
 function closeMobileSidebar(){
-  document.getElementById('sidebar')?.classList.remove('open')
+  document.getElementById('sidebar')?.classList.remove('mobile-open')
   document.getElementById('mobileOverlay')?.classList.remove('show')
 }
 // Fecha sidebar ao navegar no mobile
@@ -7484,14 +7417,13 @@ async function _iniciarApp(){
     }
   }
 
-  // tabWarning gerenciado via classe
-  // app sempre visível — loginLoading será ocultado abaixo
+  document.getElementById('tabWarning').style.display=''
+  document.querySelector('.app').style.cssText='display:flex'
   render()
 }
 
-// Esconde o app até auth confirmar
-// .app começa display:none via CSS — sem necessidade de inline style
-// tabWarning começa oculto via CSS
+// Esconde o app até auth confirmar — display:none já está no CSS
+document.getElementById('tabWarning').style.display='none'
 </script>
 
 <!-- ══ ONBOARDING ══ -->
